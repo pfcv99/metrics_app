@@ -11,6 +11,10 @@ from components import streamlit_page_config
 from components import settings
 from streamlit_option_menu import option_menu
 
+
+
+
+
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
 
