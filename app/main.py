@@ -28,8 +28,8 @@ OUTPUT_EXTENSION = ".depth"
 # Function to create necessary folders
 def folders():
     output_folder = Path("./data/depth")
-    bed_folder = Path("./data/regions")
-    bam_folder = Path("./data/mapped")
+    bed_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BED")
+    bam_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BAM")
     return output_folder, bed_folder, bam_folder
 
 # Function to select BED file
@@ -85,7 +85,7 @@ def calculate_average_read_depth(bam_path, bed_path, output_path):
 
 # Function to execute samtools depth
 def run_samtools_depth(bam_path, bed_path, output_path):
-    command = f"samtools depth -b {bed_path} {bam_path} > {output_path}"
+    command = f"samtools depth -b '{bed_path}' '{bam_path}' > '{output_path}'"
     subprocess.run(command, shell=True)
 
 # Function to calculate average depth
