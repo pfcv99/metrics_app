@@ -233,15 +233,31 @@ def streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, m
                 language="bash")
 
     elif selected == "Settings":
-        col1, col2 = st.columns(2)
-        with col1:
-            # Column for BED file selection
-            st.header("BED file")
-            settings.bed_working_directory()
-        with col2:
-            # Column for BAM file selection
-            st.header("BAM file")
-            settings.bam_working_directory()
+        # Column for BED file selection
+        st.markdown(
+                "## :red[Step 1.] BED Working Directory",
+                help=(
+                    ":red[**Please select a BED Working Directory.**]"
+                )
+            )
+        settings.bed_working_directory()
+        # Column for BAM file selection
+        st.markdown(
+                "## :red[Step 2.] BAM Working Directory",
+                help=(
+                    ":red[**Please select a BAM Working Directory.**]"
+                )
+            )
+        settings.bam_working_directory()
+        # Column for BED_BAM_Map csv file
+        st.markdown(
+                "## :red[Step 3.] BED_BAM_Map file",
+                help=(
+                    ":red[**Please select a BED_BAM_Map file.**]"
+                )
+            )
+        settings.bed_bam_map_file()
+            
         
 
 # Main function
