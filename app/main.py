@@ -35,7 +35,7 @@ def folders():
 # Function to select BED file
 def select_bed(bed_files):
     # Allow the user to select a BED file from a dropdown
-    option_bed = st.selectbox('Select a BED file', bed_files, index=None)
+    option_bed = st.selectbox('Select a BED file', bed_files, index=None, label_visibility="collapsed",placeholder="Select a BED file")
     
     # If no BED file is selected, allow the user to upload a BED file
     if not option_bed:
@@ -60,9 +60,9 @@ def select_bam(bam_files, option_bed, mapping_file):
         all = False
     
     if all != False:
-        option_bam = container.multiselect('Select BAM file(s)', all_bam_files, all_bam_files)
+        option_bam = container.multiselect('Select BAM file(s)', all_bam_files, all_bam_files, label_visibility="collapsed",placeholder="Select a BAM file(s)")
     else:
-        option_bam = container.multiselect('Select BAM file(s)', all_bam_files)
+        option_bam = container.multiselect('Select BAM file(s)', all_bam_files, label_visibility="collapsed",placeholder="Select a BAM file(s)")
 
     # If no BAM files are selected, allow the user to upload BAM file(s)
     if not option_bam:
@@ -96,14 +96,14 @@ def calculate_average_depth(output_path):
 
 # Function to count coverage at different levels
 def count_coverage(output_path):
-    bases_with_coverage = {1: 0, 10: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0}
+    bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0}
 
     with open(output_path) as file:
         lines = file.readlines()
         total_bases = len(lines)
 
         if total_bases == 0:
-            return {'Coverage_1x(%)': None, 'Coverage_10x(%)': None, 'Coverage_20x(%)': None,
+            return {'Coverage_1x(%)': None, 'Coverage_10x(%)': None, 'Coverage_15x(%)': None ,'Coverage_20x(%)': None,
                     'Coverage_30x(%)': None, 'Coverage_50x(%)': None, 'Coverage_100x(%)': None, 'Coverage_500x(%)': None}
 
         for line in lines:
@@ -194,11 +194,11 @@ def streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, m
         col1, col2 = st.columns(2)
         with col1:
             # Column for BED file selection
-            st.header("BED file")
+            st.markdown("## :red[Step 1.] BED file", help = "Please select a BED file")
             option_bed = select_bed(bed_files)
         with col2:
             # Column for BAM file selection
-            st.header("BAM file")
+            st.markdown("## :red[Step 2.] BAM file", help = "Please select a BAM file")
             option_bam = select_bam(bam_files, option_bed, mapping_file)
         if option_bam and option_bed:
             # Display progress bar during file processing
@@ -236,7 +236,7 @@ def main():
     bed_files = [f.name for f in bed_folder.iterdir() if f.suffix == BED_EXTENSION]
 
     # Provide the path to the mapping file
-    mapping_file = Path("./data/bam_bed_map/bam_bed_map.csv")
+    mapping_file = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/Casos2.csv")
 
     # Run the Streamlit app
     streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, mapping_file)
