@@ -188,35 +188,39 @@ def streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, m
 
     if selected == "Average read depth calculator":
         # Set the title for the main section
-        st.title("Average read depth calculator")
-        st.divider()
-        # Create two columns for layout
-        col1, col2 = st.columns(2)
-        with col1:
-            # Column for BED file selection
-            st.markdown(
-                "## :red[Step 1.] BED file",
-                help=(
-                    ":red[**Please select a BED file.**]\n"
-                    "- The selection of a :red[BED file] is crucial for calculating the :red[average read depth].\n"
-                    "- A :red[BED file] defines the genomic regions of interest.\n"
-                    "- The :red[read depth] will be calculated specifically for these regions.\n"
-                    "- Ensure that the selected :red[BED file] corresponds to the genomic regions you want to analyze."
+        st.markdown(
+            "# Average read depth calculator\n#"
+        )
+        with st.container(height=300, border = True):
+            # Create two columns for layout
+            col1, col2 = st.columns(2)
+            with col1:
+                # Column for BED file selection
+                st.markdown(
+                    "## :red[Step 1.] BED file",
+                    help=(
+                        "**Please select a BED file.**\n"
+                        "- The selection of a :red[BED file] is crucial for calculating the :red[average read depth].\n"
+                        "- A :red[BED file] defines the genomic regions of interest.\n"
+                        "- The :red[read depth] will be calculated specifically for these regions.\n"
+                        "- Ensure that the selected :red[BED file] corresponds to the genomic regions you want to analyze."
+                    )
                 )
-            )
-            option_bed = select_bed(bed_files)
-        with col2:
-            # Column for BAM file selection
-            st.markdown(
-                "## :red[Step 2.] BAM file",
-                help=(
-                    ":red[**Please select a BAM file.**]\n"
-                    "- The selection of a :red[BAM file] is essential for analyzing the sequencing data.\n"
-                    "- A :red[BAM file] contains aligned sequencing reads on the reference genome.\n"
-                    "- Ensure that the selected :red[BAM file] corresponds to the sequencing data you want to analyze."
+                option_bed = select_bed(bed_files)
+            with col2:
+                # Column for BAM file selection
+                st.markdown(
+                    "## :red[Step 2.] BAM file",
+                    help=(
+                        "**Please select a BAM file.**\n"
+                        "- The selection of a :red[BAM file] is essential for analyzing the sequencing data.\n"
+                        "- A :red[BAM file] contains aligned sequencing reads on the reference genome.\n"
+                        "- Ensure that the selected :red[BAM file] corresponds to the sequencing data you want to analyze."
+                    )
                 )
-            )
-            option_bam = select_bam(bam_files, option_bed, mapping_file)
+                option_bam = select_bam(bam_files, option_bed, mapping_file)
+            
+            
         if option_bam and option_bed:
             # Display progress bar during file processing
             progress_bar()
