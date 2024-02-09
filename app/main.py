@@ -28,8 +28,10 @@ OUTPUT_EXTENSION = ".depth"
 # Function to create necessary folders
 def folders():
     output_folder = Path("./data/depth")
-    bed_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BED")
-    bam_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BAM")
+    #bed_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BED")
+    #bam_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BAM")
+    bed_folder = Path("./data/regions")
+    bam_folder = Path("./data/mapped")
     return output_folder, bed_folder, bam_folder
 
 # Function to select BED file
@@ -273,7 +275,8 @@ def main():
     bed_files = [f.name for f in bed_folder.iterdir() if f.suffix == BED_EXTENSION]
 
     # Provide the path to the mapping file
-    mapping_file = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/Casos2.csv")
+    #mapping_file = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/Casos2.csv")
+    mapping_file = Path("./data/bam_bed_map/bam_bed_map.csv")
 
     # Run the Streamlit app
     streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, mapping_file)
