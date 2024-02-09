@@ -9,6 +9,7 @@ import os
 import time
 from components import streamlit_page_config
 from components import settings
+from components import plots
 from streamlit_option_menu import option_menu
 
 
@@ -185,13 +186,13 @@ def streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, m
 
     with st.sidebar:
         # Create an option menu in the sidebar
-        selected = option_menu(None, ["Average read depth calculator", "About", 'Settings'],
+        selected = option_menu(None, ["Average read depth and coverage calculator", "About", 'Settings'],
                                icons=['calculator', 'info-circle', 'gear'], menu_icon="menu-app", default_index=0)
 
-    if selected == "Average read depth calculator":
+    if selected == "Average read depth and coverage calculator":
         # Set the title for the main section
         st.markdown(
-            "# Average read depth calculator\n#"
+            "# Average read depth and coverage calculator\n#"
         )
         with st.container(height=300, border = True):
             # Create two columns for layout
@@ -229,6 +230,8 @@ def streamlit_app(bam_files, bed_files, bed_folder, bam_folder, output_folder, m
             # Process selected files and display results
             results = process_files(option_bam, option_bed, bed_folder, bam_folder, output_folder, mapping_file)
             display_results(results)
+            #plots.plot_depth_pos(output_folder)
+            
 
     elif selected == "About":
         # Display information about the tool
