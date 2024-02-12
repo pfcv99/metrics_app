@@ -22,4 +22,6 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,PKD1_8bp.bed,1111955_PKD1.bam
 ,PKD2_8bp.bed,1111955_PKD2.bam
 ,PKD1_8bp.bed,1111972_PKD1.bam
+,Painel SMP-SMD 8bp.bed,1112726.bam
+,Painel SMP-SMD 8bp.bed,1112729.bam
 
