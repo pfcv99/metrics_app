@@ -88,8 +88,9 @@ def calculate_average_read_depth(bam_path, bed_path, output_path):
 
 # Function to execute samtools depth
 def run_samtools_depth(bam_path, bed_path, output_path):
-    command = f"samtools depth -b '{bed_path}' '{bam_path}' > '{output_path}'"
+    command = f"awk '{{sub(/^chr/, \"\", $1); print}}' '{bed_path}' | samtools depth -b - '{bam_path}' > '{output_path}'"
     subprocess.run(command, shell=True)
+
 
 # Function to calculate average depth
 def calculate_average_depth(output_path):
