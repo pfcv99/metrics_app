@@ -17,8 +17,10 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,PKD2_8bp.bed,1113707_PKD2.bam
 ,PKD1_8bp.bed,1113707_PKD1.bam
 ,PKD1_8bp.bed,1111751_PKD1.bam
+,PKD1_8bp.bed,1112802_PKD1.bam
 ,PKD1_8bp.bed,1113672_PKD1.bam
 ,PKD2_8bp.bed,1113672_PKD2.bam
+,PKD2_8bp.bed,1112802_PKD2.bam
 ,PKD1_8bp.bed,1111955_PKD1.bam
 ,PKD2_8bp.bed,1111955_PKD2.bam
 ,PKD1_8bp.bed,1111972_PKD1.bam
