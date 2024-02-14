@@ -1,4 +1,5 @@
 import streamlit as st
+from components import logo
 
 st.set_page_config(
     page_title="Page 1",
@@ -27,3 +28,5 @@ st.markdown(
     - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
 """
 )
+
+logo.add_logo()

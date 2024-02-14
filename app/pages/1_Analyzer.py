@@ -182,20 +182,20 @@ def display_results(results):
     st.dataframe(df, column_config=column_configs)
 
 def working_directory():
-    if "visibility" not in st.session_state:
-        st.session_state.visibility = "visible"
-        st.session_state.disabled = False
-        st.session_state.horizontal = False
 
-    st.radio(
+    opt = st.radio(
         "Set label visibility 👇",
-        ["visible", "hidden", "Other"],
+        ["Default", "Other"],
         key="visibility",
-        label_visibility="visible",
-        disabled=False,
+        label_visibility="collapsed",
+        disabled=st.session_state.disabled,
         horizontal=True,
     )
-
+    
+    if opt == "Other":
+        bam = st.text_input(label="BAM",value="path/to/directory/bam", label_visibility = "visible")
+        bed = st.text_input(label="BED",value="path/to/directory/bed", label_visibility = "visible")
+        map = st.text_input(label="Map file",value="path/to/directory/map", label_visibility = "visible")
 
 # Function to define Streamlit app
 def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mapping_file):
@@ -206,15 +206,14 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
     )
     with st.container(border = True):
         st.markdown(
-                "## :red[Step 1.] Working Directory",
-                help=(
-                    "**Please select a BED file.**\n"
-                    "- The selection of a :red[BED file] is crucial for calculating the :red[average read depth].\n"
-                    "- A :red[BED file] defines the genomic regions of interest.\n"
-                    "- The :red[read depth] will be calculated specifically for these regions.\n"
-                    "- Ensure that the selected :red[BED file] corresponds to the genomic regions you want to analyze."
-                )
+            "## :red[Step 1.] Working Directory",
+            help=(
+                "**Please select the working directory for analysis.**\n"
+                "- Choose the directory where your data is located.\n"
+                "- The analysis will be performed on data within this selected directory.\n"
+                "- Make sure the chosen directory contains the necessary files for analysis."
             )
+        )
         working_directory()
     
     with st.container(border = True):
