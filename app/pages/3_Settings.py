@@ -1,8 +1,9 @@
-# metrics_app/app/components/settings.py
+# metrics_app/app/pages/settings.py
 
 import streamlit as st
 import os
 from pathlib import Path
+
 
 def bam_working_directory():
     """Function to set the working directory for BAM files"""
