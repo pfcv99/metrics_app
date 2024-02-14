@@ -1,8 +1,8 @@
 # Data files #
 ######################
-./data/depth/*
-./data/mapped/*
-./data/regions/*
+data/depth/*
+data/mapped/*
+data/regions/*
 
 # OS generated files #
 ######################
