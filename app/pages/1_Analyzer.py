@@ -181,6 +181,22 @@ def display_results(results):
     # Display the DataFrame with column configurations
     st.dataframe(df, column_config=column_configs)
 
+def working_directory():
+    if "visibility" not in st.session_state:
+        st.session_state.visibility = "visible"
+        st.session_state.disabled = False
+        st.session_state.horizontal = False
+
+    st.radio(
+        "Set label visibility 👇",
+        ["visible", "hidden", "Other"],
+        key="visibility",
+        label_visibility="visible",
+        disabled=False,
+        horizontal=True,
+    )
+
+
 # Function to define Streamlit app
 def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mapping_file):
 
@@ -189,12 +205,25 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
         "# Average read depth and coverage calculator\n#"
     )
     with st.container(border = True):
+        st.markdown(
+                "## :red[Step 1.] Working Directory",
+                help=(
+                    "**Please select a BED file.**\n"
+                    "- The selection of a :red[BED file] is crucial for calculating the :red[average read depth].\n"
+                    "- A :red[BED file] defines the genomic regions of interest.\n"
+                    "- The :red[read depth] will be calculated specifically for these regions.\n"
+                    "- Ensure that the selected :red[BED file] corresponds to the genomic regions you want to analyze."
+                )
+            )
+        working_directory()
+    
+    with st.container(border = True):
         # Create two columns for layout
         col1, col2 = st.columns(2)
         with col1:
             # Column for BED file selection
             st.markdown(
-                "## :red[Step 1.] BED file",
+                "## :red[Step 2.] BED file",
                 help=(
                     "**Please select a BED file.**\n"
                     "- The selection of a :red[BED file] is crucial for calculating the :red[average read depth].\n"
@@ -207,7 +236,7 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
         with col2:
             # Column for BAM file selection
             st.markdown(
-                "## :red[Step 2.] BAM file",
+                "## :red[Step 3.] BAM file",
                 help=(
                     "**Please select a BAM file.**\n"
                     "- The selection of a :red[BAM file] is essential for analyzing the sequencing data.\n"
