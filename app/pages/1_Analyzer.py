@@ -190,21 +190,21 @@ def working_directory(opt):
                 depth_folder = Path("./data/depth")
             
             elif opt == "Other":
-                bed_input = st.text_input(label="BED files", placeholder="path/to/directory/bed", label_visibility="visible")
-                bam_input = st.text_input(label="BAM files", placeholder="path/to/directory/bam", label_visibility="visible")
-                map_input = st.text_input(label="Map file", placeholder="path/to/directory/map", label_visibility="visible")
-                depth_input = st.text_input(label="Depth files", placeholder="path/to/directory/depth", label_visibility="visible")
+                bed_input = st.text_input(label="BED directory", placeholder="path/to/directory/bed", label_visibility="visible")
+                bam_input = st.text_input(label="BAM directory", placeholder="path/to/directory/bam", label_visibility="visible")
+                map_input = st.text_input(label="Map file", value="./data/bam_bed_map/gene_panels_bam_bed_map.csv",placeholder="path/to/directory/map", label_visibility="visible")
+                depth_input = st.text_input(label="Depth directory", placeholder="path/to/directory/depth", label_visibility="visible")
+
+                bed_folder = Path(bed_input) if bed_input else None
+                bam_folder = Path(bam_input) if bam_input else None
+                map_file = Path(map_input) if map_input else None
+                depth_folder = Path(depth_input) if depth_input else None
 
                 # Check if any of the inputs is empty
-                if not all((bed_input, bam_input, map_input, depth_input)):
+                if not all((bed_folder, bam_folder, map_file, depth_folder)):
                     st.warning("One or more input fields are empty. Please fill in all fields.")
                     continue  # Retry the loop if any field is empty
-
-                bed_folder = Path(bed_input) if bed_input !="" else None
-                bam_folder = Path(bam_input) if bam_input !="" else None
-                map_file = Path(map_input) if map_input !="" else None
-                depth_folder = Path(depth_input) if depth_input !="" else None
-
+                    
             # If everything is successful, break out of the loop
             break
 
@@ -290,11 +290,11 @@ def app_ARDC():
 
 # Main function
 def main():
+    logo.add_logo()
     
     # Run the Streamlit app
     app_ARDC()
     
-    logo.add_logo()
 
 # Run the main function if the script is executed directly
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 import streamlit as st
+from components import streamlit_page_config
 from components import logo
 
-st.set_page_config(
-    page_title="Page 1",
-    page_icon="👋",
-)
+# Set Streamlit page configuration
+streamlit_page_config.set_page_configuration()
 
+logo.add_logo()
 
 st.write("# Welcome to Streamlit! 👋")
 
@@ -29,4 +29,3 @@ st.markdown(
 """
 )
 
-logo.add_logo()
