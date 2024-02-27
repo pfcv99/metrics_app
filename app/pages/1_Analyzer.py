@@ -1,4 +1,4 @@
-# metrics_app/app/main.py
+# metrics_app/app/main.py/data/regions/
 
 # Import necessary libraries
 import streamlit as st
@@ -24,17 +24,8 @@ streamlit_page_config.set_page_configuration()
 # Define constants for file extensions
 BAM_EXTENSION = ".bam"
 BED_EXTENSION = ".bed"
-OUTPUT_EXTENSION = ".depth"
+depth_EXTENSION = ".depth"
 
-
-# Function to create necessary folders
-def folders():
-    output_folder = Path("./data/depth")
-    #bed_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BED")
-    #bam_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BAM")
-    bed_folder = Path("./data/regions")
-    bam_folder = Path("./data/mapped")
-    return output_folder, bed_folder, bam_folder
 
 # Function to select BED file
 def select_bed(bed_files):
@@ -47,9 +38,9 @@ def select_bed(bed_files):
     return option_bed
 
 # Function to select BAM files based on the selected BED
-def select_bam(bam_files, option_bed, mapping_file):
+def select_bam(bam_files, option_bed, map_file):
     # Read the mapping file
-    mapping_df = pd.read_csv(mapping_file)
+    mapping_df = pd.read_csv(map_file)
 
     # Filter BAM files that correspond to the selected BED
     valid_bam_files = mapping_df[mapping_df['BED_File'] == option_bed]['BAM_File'].tolist()
@@ -75,10 +66,10 @@ def select_bam(bam_files, option_bed, mapping_file):
     return option_bam
 
 # Function to calculate average read depth
-def calculate_average_read_depth(bam_path, bed_path, output_path):
-    run_samtools_depth(bam_path, bed_path, output_path)
-    average_read_depth = calculate_average_depth(output_path)
-    coverage_stats = count_coverage(output_path)
+def calculate_average_read_depth(bam_path, bed_path, depth_path):
+    run_samtools_depth(bam_path, bed_path, depth_path)
+    average_read_depth = calculate_average_depth(depth_path)
+    coverage_stats = count_coverage(depth_path)
     date_utc = pd.Timestamp.utcnow()
 
     return {
@@ -88,22 +79,22 @@ def calculate_average_read_depth(bam_path, bed_path, output_path):
     }
 
 # Function to execute samtools depth
-def run_samtools_depth(bam_path, bed_path, output_path):
-    command = f"awk '{{sub(/^chr/, \"\", $1); print}}' '{bed_path}' | samtools depth -b - '{bam_path}' > '{output_path}'"
+def run_samtools_depth(bam_path, bed_path, depth_path):
+    command = f"awk '{{sub(/^chr/, \"\", $1); print}}' '{bed_path}' | samtools depth -b - '{bam_path}' > '{depth_path}'"
     subprocess.run(command, shell=True)
 
 
 # Function to calculate average depth
-def calculate_average_depth(output_path):
-    awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {output_path}"
-    result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
+def calculate_average_depth(depth_path):
+    awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {depth_path}"
+    result = subprocess.run(awk_command, shell=True, capture_depth=True, text=True)
     return float(result.stdout.strip()) if result.stdout.strip() else None
 
 # Function to count coverage at different levels
-def count_coverage(output_path):
+def count_coverage(depth_path):
     bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0}
 
-    with open(output_path) as file:
+    with open(depth_path) as file:
         lines = file.readlines()
         total_bases = len(lines)
 
@@ -123,18 +114,18 @@ def count_coverage(output_path):
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
 # Modified function to process files
-def process_files(option_bam, option_bed, bed_folder, bam_folder, output_folder, mapping_file):
+def process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file):
     # Read the mapping file
-    mapping_df = pd.read_csv(mapping_file)
+    mapping_df = pd.read_csv(map_file)
 
     results = []
 
     for bam_file in option_bam:
         bam_path = bam_folder / bam_file
         bed_path = bed_folder / option_bed
-        output_file = output_folder / f"output_{os.path.basename(bam_file)[:-4]}.depth"
+        depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
 
-        result = calculate_average_read_depth(bam_path, bed_path, output_file)
+        result = calculate_average_read_depth(bam_path, bed_path, depth_file)
         result.update({'BAM_File': bam_file, 'BED_File': option_bed})
 
         # Add 'OMNOMICS_Average_Read_Depth' column using mapping information
@@ -181,25 +172,30 @@ def display_results(results):
     # Display the DataFrame with column configurations
     st.dataframe(df, column_config=column_configs)
 
-def working_directory():
+def working_directory(opt):
 
-    opt = st.radio(
-        "Set label visibility 👇",
-        ["Default", "Other"],
-        key="visibility",
-        label_visibility="collapsed",
-        disabled=st.session_state.disabled,
-        horizontal=True,
-    )
-    
-    if opt == "Other":
-        bam = st.text_input(label="BAM",value="path/to/directory/bam", label_visibility = "visible")
-        bed = st.text_input(label="BED",value="path/to/directory/bed", label_visibility = "visible")
-        map = st.text_input(label="Map file",value="path/to/directory/map", label_visibility = "visible")
+    if opt == "Default":
+        bed_folder = Path("./data/regions/exons")
+        bam_folder = Path("./data/mapped")
+        map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
+        depth_folder = Path("./data/depth")
+        
+    elif opt == "Gene Panels":
+        bed_folder = Path("./data/regions/gene_panels")
+        bam_folder = Path("./data/mapped")
+        map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
+        depth_folder = Path("./data/depth")
+
+    elif opt == "Other":
+        bed_folder = st.text_input(label="BED files",value="path/to/directory/bed", label_visibility = "visible")
+        bam_folder = st.text_input(label="BAM files",value="path/to/directory/bam", label_visibility = "visible")
+        map_file = st.text_input(label="Map file",value="path/to/directory/map", label_visibility = "visible")
+        depth_folder = st.text_input(label="Depth files",value="path/to/directory/depth", label_visibility = "visible")
+        
+    return bed_folder, bam_folder, map_file, depth_folder
 
 # Function to define Streamlit app
-def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mapping_file):
-
+def app_ARDC():    
     # Set the title for the main section
     st.markdown(
         "# Average read depth and coverage calculator\n#"
@@ -214,7 +210,16 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
                 "- Make sure the chosen directory contains the necessary files for analysis."
             )
         )
-        working_directory()
+        opt = st.radio(
+            "Select an option",
+            ["Default", "Gene Panels", "Other"],
+            key="visibility",
+            label_visibility="visible",
+            disabled=False,
+            horizontal=True
+            )
+        
+        bed_folder, bam_folder, map_file, depth_folder = working_directory(opt)
     
     with st.container(border = True):
         # Create two columns for layout
@@ -231,6 +236,8 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
                     "- Ensure that the selected :red[BED file] corresponds to the genomic regions you want to analyze."
                 )
             )
+
+            bed_files = [f.name for f in bed_folder.iterdir() if f.suffix == BED_EXTENSION]
             option_bed = select_bed(bed_files)
         with col2:
             # Column for BAM file selection
@@ -243,7 +250,9 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
                     "- Ensure that the selected :red[BAM file] corresponds to the sequencing data you want to analyze."
                 )
             )
-            option_bam = select_bam(bam_files, option_bed, mapping_file)
+            
+            bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == BAM_EXTENSION]
+            option_bam = select_bam(bam_files, option_bed, map_file)
         
         
     if option_bam and option_bed:
@@ -251,25 +260,16 @@ def app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mappin
         
         progress_bar()
         # Process selected files and display results
-        results = process_files(option_bam, option_bed, bed_folder, bam_folder, output_folder, mapping_file)
+        results = process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file)
         display_results(results)
-        #plots.plot_depth_pos(output_folder)
+        #plots.plot_depth_pos(depth_folder)
         
 
 # Main function
 def main():
-    # Create necessary folders
-    output_folder, bed_folder, bam_folder = folders()
-
-    bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == BAM_EXTENSION]
-    bed_files = [f.name for f in bed_folder.iterdir() if f.suffix == BED_EXTENSION]
-
-    # Provide the path to the mapping file
-    #mapping_file = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/Casos2.csv")
-    mapping_file = Path("./data/bam_bed_map/bam_bed_map.csv")
-
+    
     # Run the Streamlit app
-    app_ARDC(bam_files, bed_files, bed_folder, bam_folder, output_folder, mapping_file)
+    app_ARDC()
     
     logo.add_logo()
 
