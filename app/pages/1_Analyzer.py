@@ -4,6 +4,7 @@
 import streamlit as st
 import pandas as pd
 from pathlib import Path
+import sys
 import subprocess
 import os
 import time
@@ -87,7 +88,7 @@ def run_samtools_depth(bam_path, bed_path, depth_path):
 # Function to calculate average depth
 def calculate_average_depth(depth_path):
     awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {depth_path}"
-    result = subprocess.run(awk_command, shell=True, capture_depth=True, text=True)
+    result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
     return float(result.stdout.strip()) if result.stdout.strip() else None
 
 # Function to count coverage at different levels
@@ -172,27 +173,49 @@ def display_results(results):
     # Display the DataFrame with column configurations
     st.dataframe(df, column_config=column_configs)
 
+
 def working_directory(opt):
+    while True:
+        try:
+            if opt == "Default":
+                bed_folder = Path("./data/regions/exons")
+                bam_folder = Path("./data/mapped")
+                map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
+                depth_folder = Path("./data/depth")
+                
+            elif opt == "Gene Panels":
+                bed_folder = Path("./data/regions/gene_panels")
+                bam_folder = Path("./data/mapped")
+                map_file = Path("./data/bam_bed_map/gene_panels_bam_bed_map.csv")
+                depth_folder = Path("./data/depth")
+            
+            elif opt == "Other":
+                bed_input = st.text_input(label="BED files", placeholder="path/to/directory/bed", label_visibility="visible")
+                bam_input = st.text_input(label="BAM files", placeholder="path/to/directory/bam", label_visibility="visible")
+                map_input = st.text_input(label="Map file", placeholder="path/to/directory/map", label_visibility="visible")
+                depth_input = st.text_input(label="Depth files", placeholder="path/to/directory/depth", label_visibility="visible")
 
-    if opt == "Default":
-        bed_folder = Path("./data/regions/exons")
-        bam_folder = Path("./data/mapped")
-        map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
-        depth_folder = Path("./data/depth")
-        
-    elif opt == "Gene Panels":
-        bed_folder = Path("./data/regions/gene_panels")
-        bam_folder = Path("./data/mapped")
-        map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
-        depth_folder = Path("./data/depth")
+                # Check if any of the inputs is empty
+                if not all((bed_input, bam_input, map_input, depth_input)):
+                    st.warning("One or more input fields are empty. Please fill in all fields.")
+                    continue  # Retry the loop if any field is empty
 
-    elif opt == "Other":
-        bed_folder = st.text_input(label="BED files",value="path/to/directory/bed", label_visibility = "visible")
-        bam_folder = st.text_input(label="BAM files",value="path/to/directory/bam", label_visibility = "visible")
-        map_file = st.text_input(label="Map file",value="path/to/directory/map", label_visibility = "visible")
-        depth_folder = st.text_input(label="Depth files",value="path/to/directory/depth", label_visibility = "visible")
-        
+                bed_folder = Path(bed_input) if bed_input !="" else None
+                bam_folder = Path(bam_input) if bam_input !="" else None
+                map_file = Path(map_input) if map_input !="" else None
+                depth_folder = Path(depth_input) if depth_input !="" else None
+
+            # If everything is successful, break out of the loop
+            break
+
+        except OSError as e:
+            st.error(f"Error: {e}")
+            st.warning("Please resolve the error before continuing.")
+            # Continue the loop if there is an error
+
     return bed_folder, bam_folder, map_file, depth_folder
+
+
 
 # Function to define Streamlit app
 def app_ARDC():    
