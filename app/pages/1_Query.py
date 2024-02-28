@@ -1,4 +1,4 @@
-# metrics_app/app/main.py/data/regions/
+# metrics_app/app/pages/1_Analyser.py
 
 # Import necessary libraries
 import streamlit as st
@@ -9,11 +9,11 @@ import subprocess
 import os
 import time
 from components import streamlit_page_config
-from components import settings
-from components import plots
 from components import samtools_depth as sd 
 from streamlit_option_menu import option_menu
 from components import logo
+from time import sleep
+from stqdm import stqdm
 
 
 
@@ -89,15 +89,20 @@ def calculate_average_depth(depth_path):
 
 # Function to count coverage at different levels
 def count_coverage(depth_path):
-    bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0}
+    #bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0} # Original
+    bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0} # Reverse
 
     with open(depth_path) as file:
         lines = file.readlines()
         total_bases = len(lines)
 
+        #if total_bases == 0:
+        #    return {'Coverage_1x(%)': None, 'Coverage_10x(%)': None, 'Coverage_15x(%)': None ,'Coverage_20x(%)': None,
+        #            'Coverage_30x(%)': None, 'Coverage_50x(%)': None, 'Coverage_100x(%)': None, 'Coverage_500x(%)': None}
+        
         if total_bases == 0:
-            return {'Coverage_1x(%)': None, 'Coverage_10x(%)': None, 'Coverage_15x(%)': None ,'Coverage_20x(%)': None,
-                    'Coverage_30x(%)': None, 'Coverage_50x(%)': None, 'Coverage_100x(%)': None, 'Coverage_500x(%)': None}
+            return {'Coverage_500x(%)': None, 'Coverage_100x(%)': None, 'Coverage_50x(%)': None ,'Coverage_30x(%)': None,
+                    'Coverage_20x(%)': None, 'Coverage_15x(%)': None, 'Coverage_10x(%)': None, 'Coverage_1x(%)': None}
 
         for line in lines:
             fields = line.strip().split()
@@ -125,36 +130,26 @@ def process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, 
         result = calculate_average_read_depth(bam_path, bed_path, depth_file)
         result.update({'BAM_File': bam_file, 'BED_File': option_bed})
 
-        # Add 'OMNOMICS_Average_Read_Depth' column using mapping information
-        mapping_info = mapping_df[mapping_df['BAM_File'] == bam_file]['OMNOMICS_Average_Read_Depth'].values
-        result['OMNOMICS_Average_Read_Depth'] = mapping_info[0] if len(mapping_info) > 0 else None
+        ## Add 'OMNOMICS_Average_Read_Depth' column using mapping information
+        #mapping_info = mapping_df[mapping_df['BAM_File'] == bam_file]['OMNOMICS_Average_Read_Depth'].values
+        #result['OMNOMICS_Average_Read_Depth'] = mapping_info[0] if len(mapping_info) > 0 else None
 
         results.append(result)
 
     return results
 
-# Function to display progress bar
-def progress_bar():
-    progress_text = "Operation in progress. Please wait."
-    my_bar = st.sidebar.progress(0, text=progress_text)
-
-    for percent_complete in range(100):
-        time.sleep(0.01)
-        my_bar.progress(percent_complete + 1, text=progress_text)
-    time.sleep(1)
-    my_bar.empty()
-    
-    success = st.sidebar.success('Successfully completed!', icon="✅")
-    time.sleep(1)
-    success.empty()
 
 # Function to display results in a DataFrame
 def display_results(results):
     st.header("Results")
+    
+    #Progress Bar
+    stqdm.pandas(desc="Calculating Results",)
+    
     df = pd.DataFrame(results)
     df.set_index('Date', inplace=True)
     # Replace the line that sets ordered_columns with the following
-    ordered_columns = ['BED_File','BAM_File', 'OMNOMICS_Average_Read_Depth'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File', 'OMNOMICS_Average_Read_Depth']]
+    ordered_columns = ['BED_File','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File']]
 
     df = df[ordered_columns]
 
@@ -166,6 +161,9 @@ def display_results(results):
             min_value=0,
             max_value=100
         )
+    
+    df.progress_apply(lambda x: sleep(0.15), axis=1)
+    
     # Display the DataFrame with column configurations
     st.dataframe(df, column_config=column_configs)
 
@@ -188,7 +186,7 @@ def working_directory(opt):
             elif opt == "Other":
                 bed_input = st.text_input(label="BED directory", placeholder="path/to/directory/bed", label_visibility="visible")
                 bam_input = st.text_input(label="BAM directory", placeholder="path/to/directory/bam", label_visibility="visible")
-                map_input = st.text_input(label="Map file", value="./data/bam_bed_map/gene_panels_bam_bed_map.csv",placeholder="path/to/directory/map", label_visibility="visible")
+                map_input = st.text_input(label="Map file",placeholder="path/to/directory/map", label_visibility="visible")
                 depth_input = st.text_input(label="Depth directory", placeholder="path/to/directory/depth", label_visibility="visible")
 
                 bed_folder = Path(bed_input) if bed_input else None
@@ -277,7 +275,7 @@ def app_ARDC():
     if option_bam and option_bed:
         # Display progress bar during file processing
         
-        progress_bar()
+        #progress_bar()
         # Process selected files and display results
         results = process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file)
         display_results(results)
