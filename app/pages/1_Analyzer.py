@@ -11,6 +11,7 @@ import time
 from components import streamlit_page_config
 from components import settings
 from components import plots
+from components import samtools_depth as sd 
 from streamlit_option_menu import option_menu
 from components import logo
 
@@ -68,7 +69,7 @@ def select_bam(bam_files, option_bed, map_file):
 
 # Function to calculate average read depth
 def calculate_average_read_depth(bam_path, bed_path, depth_path):
-    run_samtools_depth(bam_path, bed_path, depth_path)
+    sd.run_samtools_depth(bam_path, bed_path, depth_path)
     average_read_depth = calculate_average_depth(depth_path)
     coverage_stats = count_coverage(depth_path)
     date_utc = pd.Timestamp.utcnow()
@@ -78,11 +79,6 @@ def calculate_average_read_depth(bam_path, bed_path, depth_path):
         'Average_Read_Depth': average_read_depth,
         **coverage_stats
     }
-
-# Function to execute samtools depth
-def run_samtools_depth(bam_path, bed_path, depth_path):
-    command = f"awk '{{sub(/^chr/, \"\", $1); print}}' '{bed_path}' | samtools depth -b - '{bam_path}' > '{depth_path}'"
-    subprocess.run(command, shell=True)
 
 
 # Function to calculate average depth
