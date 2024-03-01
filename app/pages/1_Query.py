@@ -61,16 +61,16 @@ def select_bam(bam_files, option_bed, map_file):
     else:
         option_bam = container.multiselect('Select BAM file(s)', all_bam_files, label_visibility="collapsed",placeholder="Select a BAM file(s)")
 
-    # If no BAM files are selected, allow the user to upload BAM file(s)
+    # If no BAM filread_depthes are selected, allow the user to upload BAM file(s)
     if not option_bam:
         st.info("No BAM file(s) selected. Please select BAM file(s).")
 
     return option_bam
 
 # Function to calculate average read depth
-def calculate_average_read_depth(bam_path, bed_path, depth_path):
-    sd.run_samtools_depth(bam_path, bed_path, depth_path)
-    average_read_depth = calculate_average_depth(depth_path)
+def compute_read_depth(bam_path, bed_path, depth_path):
+    sd.run_samtools_depth2(bam_path, bed_path, depth_path)
+    average_read_depth = calculate_average_read_depth(depth_path)
     coverage_stats = count_coverage(depth_path)
     date_utc = pd.Timestamp.utcnow()
 
@@ -82,7 +82,7 @@ def calculate_average_read_depth(bam_path, bed_path, depth_path):
 
 
 # Function to calculate average depth
-def calculate_average_depth(depth_path):
+def calculate_average_read_depth(depth_path):
     awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {depth_path}"
     result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
     return float(result.stdout.strip()) if result.stdout.strip() else None
@@ -127,7 +127,7 @@ def process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, 
         bed_path = bed_folder / option_bed
         depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
 
-        result = calculate_average_read_depth(bam_path, bed_path, depth_file)
+        result = compute_read_depth(bam_path, bed_path, depth_file)
         result.update({'BAM_File': bam_file, 'BED_File': option_bed})
 
         ## Add 'OMNOMICS_Average_Read_Depth' column using mapping information
@@ -141,10 +141,12 @@ def process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, 
 
 # Function to display results in a DataFrame
 def display_results(results):
+    #Progress Bar
+    stqdm.pandas(desc="Calculating Results")
+    
     st.header("Results")
     
-    #Progress Bar
-    stqdm.pandas(desc="Calculating Results",)
+    
     
     df = pd.DataFrame(results)
     df.set_index('Date', inplace=True)
@@ -171,16 +173,22 @@ def display_results(results):
 def working_directory(opt):
     while True:
         try:
-            if opt == "Default":
+            if opt == "Single Gene":
                 bed_folder = Path("./data/regions/exons")
                 bam_folder = Path("./data/mapped")
                 map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
                 
-            elif opt == "Gene Panels":
+            elif opt == "Gene Panel":
                 bed_folder = Path("./data/regions/gene_panels")
                 bam_folder = Path("./data/mapped")
                 map_file = Path("./data/bam_bed_map/gene_panels_bam_bed_map.csv")
+                depth_folder = Path("./data/depth")
+            
+            elif opt == "Exome":
+                bed_folder = Path("./data/regions/exome")
+                bam_folder = Path("./data/mapped")
+                map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
             
             elif opt == "Other":
@@ -229,7 +237,7 @@ def app_ARDC():
         )
         opt = st.radio(
             "Select an option",
-            ["Default", "Gene Panels", "Other"],
+            ["Single Gene", "Gene Panel", "Exome", "Other"],
             key="visibility",
             label_visibility="visible",
             disabled=False,

@@ -1,13 +1,13 @@
-OMNOMICS_Average_Read_Depth,BED_File,BAM_File
-,Oncorisk (96 genes).bed,1106179.bam
-,Oncorisk (96 genes).bed,1106212.bam
-,Oncorisk (96 genes).bed,1105374.bam
-,Oncorisk (96 genes).bed,1103097.bam
-,BRCA1_BRCA2_NGv.bed,1101542.bam
-,BRCA1_BRCA2_NGv.bed,1101546.bam
-,BRCA1_BRCA2_NGv.bed,1101968.bam
-,Cancro da mama e ovario (27 genes).bed,1102923.bam
-,Cancro da mama e ovario (27 genes).bed,1103706.bam
-,Cancro da mama e ovario (27 genes).bed,1101799.bam
+BED_File,BAM_File
+Oncorisk_96genes.bed,1106179.bam
+Oncorisk_96genes.bed,1106212.bam
+Oncorisk_96genes.bed,1105374.bam
+Oncorisk_96genes.bed,1103097.bam
+BRCA1_BRCA2_NGv.bed,1101542.bam
+BRCA1_BRCA2_NGv.bed,1101546.bam
+BRCA1_BRCA2_NGv.bed,1101968.bam
+Cancro da mama e ovario (27 genes).bed,1102923.bam
+Cancro da mama e ovario (27 genes).bed,1103706.bam
+Cancro da mama e ovario (27 genes).bed,1101799.bam
 
 
