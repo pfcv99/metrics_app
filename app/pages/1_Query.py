@@ -87,6 +87,15 @@ def calculate_average_read_depth(depth_path):
     result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
     return float(result.stdout.strip()) if result.stdout.strip() else None
 
+def gene_average_read_depth(bed_path):
+    gene_list = bed_path[5].unique().tolist()
+    for gene in gene_list:
+        calculate_average_read_depth(gene)
+        
+
+
+
+
 # Function to count coverage at different levels
 def count_coverage(depth_path):
     #bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0} # Original
@@ -165,6 +174,8 @@ def display_results(results):
         )
     
     df.progress_apply(lambda x: sleep(0.15), axis=1)
+    n = len(df.columns)
+    df.style.apply(lambda x: ["background-color: red"]*n if x['Coverage_500x(%)'] <= 95 else ["background-color: green"]*n, axis = 1)
     
     # Display the DataFrame with column configurations
     st.dataframe(df, column_config=column_configs)
@@ -174,7 +185,7 @@ def working_directory(opt):
     while True:
         try:
             if opt == "Single Gene":
-                bed_folder = Path("./data/regions/exons")
+                bed_folder = Path("./data/regions/single_gene")
                 bam_folder = Path("./data/mapped")
                 map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
@@ -289,6 +300,10 @@ def app_ARDC():
         display_results(results)
         #plots.plot_depth_pos(depth_folder)
         
+
+
+
+
 
 # Main function
 def main():
