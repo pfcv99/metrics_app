@@ -19,8 +19,11 @@ from stqdm import stqdm
 
 
 
+
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
+
+logo.add_logo()
 
 
 # Define constants for file extensions
@@ -69,7 +72,7 @@ def select_bam(bam_files, option_bed, map_file):
 
 # Function to calculate average read depth
 def compute_read_depth(bam_path, bed_path, depth_path):
-    sd.run_samtools_depth2(bam_path, bed_path, depth_path)
+    sd.run_samtools_depth(bam_path, bed_path, depth_path)
     average_read_depth = calculate_average_read_depth(depth_path)
     coverage_stats = count_coverage(depth_path)
     date_utc = pd.Timestamp.utcnow()
@@ -125,7 +128,53 @@ def count_coverage(depth_path):
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
 # Modified function to process files
-def process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file):
+def process_files_single_gene(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file):
+    # Read the mapping file
+    mapping_df = pd.read_csv(map_file)
+
+    results = []
+
+    for bam_file in option_bam:
+        bam_path = bam_folder / bam_file
+        bed_path = bed_folder / option_bed
+        depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
+
+        result = compute_read_depth(bam_path, bed_path, depth_file)
+        result.update({'BAM_File': bam_file, 'BED_File': option_bed})
+
+        ## Add 'OMNOMICS_Average_Read_Depth' column using mapping information
+        #mapping_info = mapping_df[mapping_df['BAM_File'] == bam_file]['OMNOMICS_Average_Read_Depth'].values
+        #result['OMNOMICS_Average_Read_Depth'] = mapping_info[0] if len(mapping_info) > 0 else None
+
+        results.append(result)
+
+    return results
+
+# Modified function to process files
+def process_files_gene_panel(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file):
+    # Read the mapping file
+    mapping_df = pd.read_csv(map_file)
+
+    results = []
+
+    for bam_file in option_bam:
+        bam_path = bam_folder / bam_file
+        bed_path = bed_folder / option_bed
+        depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
+
+        result = compute_read_depth(bam_path, bed_path, depth_file)
+        result.update({'BAM_File': bam_file, 'BED_File': option_bed})
+
+        ## Add 'OMNOMICS_Average_Read_Depth' column using mapping information
+        #mapping_info = mapping_df[mapping_df['BAM_File'] == bam_file]['OMNOMICS_Average_Read_Depth'].values
+        #result['OMNOMICS_Average_Read_Depth'] = mapping_info[0] if len(mapping_info) > 0 else None
+
+        results.append(result)
+
+    return results
+
+# Modified function to process files
+def process_files_exome(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file):
     # Read the mapping file
     mapping_df = pd.read_csv(map_file)
 
@@ -149,11 +198,9 @@ def process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, 
 
 
 # Function to display results in a DataFrame
-def display_results(results):
-    #Progress Bar
-    stqdm.pandas(desc="Calculating Results")
+def display_results_single_gene(results):
     
-    st.header("Results")
+    st.header("Results - Single Gene")
     
     
     
@@ -174,8 +221,61 @@ def display_results(results):
         )
     
     df.progress_apply(lambda x: sleep(0.15), axis=1)
-    n = len(df.columns)
-    df.style.apply(lambda x: ["background-color: red"]*n if x['Coverage_500x(%)'] <= 95 else ["background-color: green"]*n, axis = 1)
+    
+    # Display the DataFrame with column configurations
+    st.dataframe(df, column_config=column_configs)
+    
+# Function to display results in a DataFrame
+def display_results_gene_panel(results):
+    
+    st.header("Results - Gene Panel")
+    
+    
+    df = pd.DataFrame(results)
+    df.set_index('Date', inplace=True)
+    # Replace the line that sets ordered_columns with the following
+    ordered_columns = ['BED_File','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File']]
+
+    df = df[ordered_columns]
+
+    column_configs = {}
+    for column in df.columns[df.columns.str.startswith('Coverage')]:
+        column_configs[column] = st.column_config.ProgressColumn(
+            help="Coverage percentage",
+            format="%.2f",
+            min_value=0,
+            max_value=100
+        )
+    
+    df.progress_apply(lambda x: sleep(0.15), axis=1)
+    
+    # Display the DataFrame with column configurations
+    st.dataframe(df, column_config=column_configs)
+    
+# Function to display results in a DataFrame
+def display_results_exome(results):
+    
+    st.header("Results - Exome")
+    
+    
+    
+    df = pd.DataFrame(results)
+    df.set_index('Date', inplace=True)
+    # Replace the line that sets ordered_columns with the following
+    ordered_columns = ['BED_File','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File']]
+
+    df = df[ordered_columns]
+
+    column_configs = {}
+    for column in df.columns[df.columns.str.startswith('Coverage')]:
+        column_configs[column] = st.column_config.ProgressColumn(
+            help="Coverage percentage",
+            format="%.2f",
+            min_value=0,
+            max_value=100
+        )
+    
+    df.progress_apply(lambda x: sleep(0.15), axis=1)
     
     # Display the DataFrame with column configurations
     st.dataframe(df, column_config=column_configs)
@@ -292,13 +392,21 @@ def app_ARDC():
         
         
     if option_bam and option_bed:
-        # Display progress bar during file processing
-        
-        #progress_bar()
-        # Process selected files and display results
-        results = process_files(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file)
-        display_results(results)
-        #plots.plot_depth_pos(depth_folder)
+        #Progress Bar
+        stqdm.pandas(desc="Calculating Results")
+        if opt == "Single Gene":
+            # Process selected files and display results
+            results_single_gene = process_files_single_gene(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file)
+            display_results_single_gene(results_single_gene)
+        elif opt == "Gene Panel":
+            # Process selected files and display results
+            results_gene_panel = process_files_gene_panel(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file)
+            display_results_gene_panel(results_gene_panel)
+        elif opt == "Exome":
+            # Process selected files and display results
+            results_exome = process_files_exome(option_bam, option_bed, bed_folder, bam_folder, depth_folder, map_file)
+            display_results_exome(results_exome)
+
         
 
 
@@ -307,7 +415,6 @@ def app_ARDC():
 
 # Main function
 def main():
-    logo.add_logo()
     
     # Run the Streamlit app
     app_ARDC()

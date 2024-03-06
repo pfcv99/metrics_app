@@ -1,33 +1,42 @@
 import pandas as pd
-import streamlit as st 
+import streamlit as st
+from components import logo
 
-df = pd.DataFrame(
-    {
-        "52WeekLow": [1.21, 0.2006, 0.161, 0.1255, 1.07, 1.46, 1.16, 1.12, 1.82, 0.27],
-        "ClosingPrice": [3.15, 0.21, 0.19, 0.13, 1.73, 3.0, 1.5, 2.98, 2.09, 1.07],
-        "52WeekHigh": [21.0, 13.25, 1.75, 3.45, 5.4, 7.84, 8.7, 71.5, 6.064, 1.75],
-    }
-)
+logo.add_logo()
 
+# Criar o DataFrame
+data = {
+    'Date': ['06/03/2024'] * 4,
+    'BED_File': ['Oncorisk_96genes.bed'] * 4,
+    'BAM_File': ['1106179.bam'] * 4,
+    'Gene': ['AIP', 'ALK', 'APC', 'ATM'],
+    'Average_Read_Depth': [1, 1, 1, 1],
+    'Coverage_500x(%)': [3, 3, 3, 3],
+    'Coverage_100x(%)': [8, 8, 8, 8],
+    'Coverage_50x(%)': [7, 7, 7, 7],
+    'Coverage_30x(%)': [9, 9, 9, 9],
+    'Coverage_20x(%)': [6, 6, 6, 6],
+    'Coverage_15x(%)': [5, 5, 5, 5],
+    'Coverage_10x(%)': [2, 2, 2, 2],
+    'Coverage_1x(%)': [4, 4, 4, 4]
+}
 
-s = (
-    df.style.hide(axis=0)
-        .format({"ClosingPrice": "${:.2f}"}, precision=2)
-        .set_properties(subset=["ClosingPrice"], **{"text-align": "right"})
-)
+df = pd.DataFrame(data)
 
-for r, (l, h) in enumerate(zip(df["52WeekLow"], df["52WeekHigh"])):
-    if r >1:
-        s = s.bar(
-            subset=pd.IndexSlice[r, "ClosingPrice"],
-            vmin=l, vmax=h,
-            color="lightgreen"
-        )
-    elif r <=1:
-        s = s.bar(
-            subset=pd.IndexSlice[r, "ClosingPrice"],
-            vmin=l, vmax=h,
-            color="red"
-        )
+# Criar um MultiIndex
+df.set_index(['Date', 'BED_File', 'BAM_File', 'Gene'], inplace=True)
 
-st.markdown(s.to_html(), unsafe_allow_html=True)
+# Adicionar a linha total
+total_row = df.groupby(['Date', 'BED_File', 'BAM_File']).sum().mean().round().astype(int)
+total_df = pd.DataFrame([total_row], index=pd.MultiIndex.from_tuples([('Total', '', '', '')], names=['Date', 'BED_File', 'BAM_File', 'Gene']))
+
+df = pd.concat([df, total_df])
+
+# Resetar o índice para criar um DataFrame plano
+df.reset_index(inplace=True)
+
+# Streamlit App
+st.title('DataFrame Consolidado')
+
+# Mostrar DataFrame
+st.write(df)
