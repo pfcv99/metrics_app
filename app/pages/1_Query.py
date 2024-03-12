@@ -93,7 +93,7 @@ def select_bam(bam_files, region, map_file):
 # Function to calculate average read depth
 def compute_read_depth(bam_path, bed_path, depth_path, region):
     
-    sd.run_samtools_depth(bam_path, bed_path, depth_path, region)
+    sd.run_samtools_depth_v2(bam_path, bed_path, depth_path, region)
     average_read_depth = calculate_average_read_depth(depth_path)
     coverage_stats = count_coverage(depth_path)
     date_utc = pd.Timestamp.utcnow()
@@ -154,7 +154,7 @@ def process_files(option_bam, region, bed_folder, bam_folder, depth_folder, map_
 
         for bam_file in option_bam:
             bam_path = bam_folder / bam_file
-            bed_path = "data/regions/MANE_genomic/MANE_exons_modif_MANE.bed"
+            bed_path = "data/regions/MANE_genomic/UCSC_hg19_exons_modif_canonical.bed"
             depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
 
             result = compute_read_depth(bam_path, bed_path, depth_file, region)
