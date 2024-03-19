@@ -31,6 +31,12 @@ def mane_bed():
     gene_lst = df[3].unique().tolist()
     
     return sorted(gene_lst)
+def ucsc_bed():
+    data = pd.read_csv('data/regions/MANE_genomic/UCSC_hg19_exons_modif_canonical.bed', sep='\t', header=None)
+    df = pd.DataFrame(data)
+    gene_lst = df[3].unique().tolist()
+    
+    return sorted(gene_lst)
 
 def single_gene_bed(region):
     data = pd.read_csv('data/regions/MANE_genomic/MANE_hg38_exons_modif_MANE.bed', sep='\t', header=None)
@@ -39,15 +45,22 @@ def single_gene_bed(region):
     return df
 
 # Function to select BED file
-def region_of_interest(opt):
+def region_of_interest(opt, assembly):
+    if assembly == "GRCh38/hg38":
+        bed_files = mane_bed()
+    elif assembly == "GRCh37/hg19":
+        bed_files = ucsc_bed()
     
-    bed_files = mane_bed()
     
     # Allow the user to select a region of interest in a dropdown
     if opt == "Single Gene":
         region = st.selectbox('Select a Gene of Interest', bed_files, index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
     elif opt == "Gene Panel":
-        region = st.selectbox('Select a Gene Panel', bed_files, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
+        panel = st.radio('Select a Gene Panel', ["Unilabs Panel", "Custom Panel"], index=0, label_visibility="visible", horizontal=True)
+        if panel == "Unilabs Panel":
+            region = st.selectbox('Select a Gene Panel', bed_files, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
+        elif panel == "Custom Panel":
+            region = st.multiselect('Select a Gene Panel', bed_files, label_visibility="collapsed",placeholder="Select a Gene Panel")
     elif opt == "Exome":
         region = st.selectbox('Select an Exome', bed_files, index=None, label_visibility="collapsed",placeholder="Select an Exome")
     
@@ -343,12 +356,12 @@ def app_ARDC():
                     "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
                 )
             )
-            ver = st.radio(
+            assembly = st.radio(
                 "Select an option",
                 ["GRCh37/hg19", "GRCh38/hg38"],
                 label_visibility="visible",
                 disabled=False,
-                horizontal=True
+                horizontal=True, index=1
                 )
 
             
@@ -402,7 +415,7 @@ def app_ARDC():
                     )
                 )
 
-            region = region_of_interest(opt)
+            region = region_of_interest(opt, assembly)
             
         with col2:
             # Column for BAM file selection
