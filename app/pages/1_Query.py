@@ -38,7 +38,7 @@ def region_of_interest(opt, assembly):
             panel_lst = df['Panel_Name_EN_EMEDGENE'].unique().tolist()
             panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
             genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
-            region = genes_lst
+            region = genes_lst 
         elif panel == "Custom Panel":
             region = st.multiselect('Select some Genes', bed_files, label_visibility="collapsed",placeholder="Select some Genes")
     elif opt == "Exome":
@@ -98,11 +98,26 @@ def compute_read_depth(bam_path, bed_path, depth_path, region):
     }
 
 
-# Function to calculate average depth
+## Function to calculate average depth
+#def calculate_average_read_depth(depth_path):
+#    awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {depth_path}"
+#    result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
+#    return float(result.stdout.strip()) if result.stdout.strip() else None
+
 def calculate_average_read_depth(depth_path):
-    awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {depth_path}"
-    result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
-    return float(result.stdout.strip()) if result.stdout.strip() else None
+    depths = []
+
+    with open(depth_path, 'r') as file:
+        for line in file:
+            depth = line.strip().split()[2]
+            depths.append(float(depth))
+
+    if depths:
+        average_depth = sum(depths) / len(depths)
+        return round(average_depth, 2)
+    else:
+        return None
+
 
 
 
@@ -139,7 +154,6 @@ def count_coverage(depth_path):
 # Modified function to process files
 def process_files(option_bam, region, bam_folder, depth_folder, opt):
     if opt == "Single Gene":
-        
 
         results = []
 
@@ -258,39 +272,20 @@ def working_directory(opt):
     while True:
         try:
             if opt == "Single Gene":
-                bed_folder = Path("./data/regions/single_gene")
                 bam_folder = Path("./data/mapped")
                 map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
                 
             elif opt == "Gene Panel":
-                bed_folder = Path("./data/regions/gene_panels")
                 bam_folder = Path("./data/mapped")
                 map_file = Path("./data/bam_bed_map/gene_panels_bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
             
             elif opt == "Exome":
-                bed_folder = Path("./data/regions/exome")
                 bam_folder = Path("./data/mapped")
                 map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
             
-            elif opt == "Other":
-                bed_input = st.text_input(label="BED directory", placeholder="path/to/directory/bed", label_visibility="visible")
-                bam_input = st.text_input(label="BAM directory", placeholder="path/to/directory/bam", label_visibility="visible")
-                map_input = st.text_input(label="Map file",placeholder="path/to/directory/map", label_visibility="visible")
-                depth_input = st.text_input(label="Depth directory", placeholder="path/to/directory/depth", label_visibility="visible")
-
-                bed_folder = Path(bed_input) if bed_input else None
-                bam_folder = Path(bam_input) if bam_input else None
-                map_file = Path(map_input) if map_input else None
-                depth_folder = Path(depth_input) if depth_input else None
-
-                # Check if any of the inputs is empty
-                if not all((bed_folder, bam_folder, map_file, depth_folder)):
-                    st.warning("One or more input fields are empty. Please fill in all fields.")
-                    continue  # Retry the loop if any field is empty
-                    
             # If everything is successful, break out of the loop
             break
 
@@ -299,7 +294,7 @@ def working_directory(opt):
             st.warning("Please resolve the error before continuing.")
             # Continue the loop if there is an error
 
-    return bed_folder, bam_folder, map_file, depth_folder
+    return bam_folder, map_file, depth_folder
 
 
 
@@ -331,7 +326,7 @@ def app_ARDC():
                 horizontal=True
                 )
 
-            bed_folder, bam_folder, map_file, depth_folder = working_directory(opt)
+            bam_folder, map_file, depth_folder = working_directory(opt)
             
         with col2:
             st.markdown(
