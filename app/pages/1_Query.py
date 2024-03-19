@@ -9,6 +9,7 @@ import os
 from components import streamlit_page_config
 from components import samtools_depth as sd 
 from components import logo
+from components import genome_regions
 from time import sleep
 from stqdm import stqdm
 
@@ -18,39 +19,13 @@ streamlit_page_config.set_page_configuration()
 logo.add_logo()
 
 
-
-
-# Define constants for file extensions
-BAM_EXTENSION = ".bam"
-BED_EXTENSION = ".bed"
-depth_EXTENSION = ".depth"
-
-def mane_bed():
-    data = pd.read_csv('data/regions/MANE_genomic/MANE_hg38_exons_modif_MANE.bed', sep='\t', header=None)
-    df = pd.DataFrame(data)
-    gene_lst = df[3].unique().tolist()
-    
-    return sorted(gene_lst)
-def ucsc_bed():
-    data = pd.read_csv('data/regions/MANE_genomic/UCSC_hg19_exons_modif_canonical.bed', sep='\t', header=None)
-    df = pd.DataFrame(data)
-    gene_lst = df[3].unique().tolist()
-    
-    return sorted(gene_lst)
-
-def single_gene_bed(region):
-    data = pd.read_csv('data/regions/MANE_genomic/MANE_hg38_exons_modif_MANE.bed', sep='\t', header=None)
-    df = pd.DataFrame(data)
-    df = df[df[3] == region]
-    return df
-
 # Function to select BED file
 def region_of_interest(opt, assembly):
-    if assembly == "GRCh38/hg38":
-        bed_files = mane_bed()
-    elif assembly == "GRCh37/hg19":
-        bed_files = ucsc_bed()
     
+    if assembly == "GRCh38/hg38":
+        bed_files = genome_regions.mane()
+    elif assembly == "GRCh37/hg19":
+        bed_files = genome_regions.ucsc() 
     
     # Allow the user to select a region of interest in a dropdown
     if opt == "Single Gene":
@@ -58,9 +33,14 @@ def region_of_interest(opt, assembly):
     elif opt == "Gene Panel":
         panel = st.radio('Select a Gene Panel', ["Unilabs Panel", "Custom Panel"], index=0, label_visibility="visible", horizontal=True)
         if panel == "Unilabs Panel":
-            region = st.selectbox('Select a Gene Panel', bed_files, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
+            data = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=',', header=0)
+            df = pd.DataFrame(data)
+            panel_lst = df['Panel_Name_EN_EMEDGENE'].unique().tolist()
+            panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
+            genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
+            region = genes_lst
         elif panel == "Custom Panel":
-            region = st.multiselect('Select a Gene Panel', bed_files, label_visibility="collapsed",placeholder="Select a Gene Panel")
+            region = st.multiselect('Select some Genes', bed_files, label_visibility="collapsed",placeholder="Select some Genes")
     elif opt == "Exome":
         region = st.selectbox('Select an Exome', bed_files, index=None, label_visibility="collapsed",placeholder="Select an Exome")
     
@@ -77,15 +57,15 @@ def region_of_interest(opt, assembly):
 
 # Function to select BAM files based on the selected BED
 def select_bam(bam_files, region, map_file):
-    # Read the mapping file
-    mapping_df = pd.read_csv(map_file)
-
-    # Filter BAM files that correspond to the selected BED
-    valid_bam_files = mapping_df[mapping_df['BED_File'] == region]['BAM_File'].tolist()
+    ## Read the mapping file
+    #mapping_df = pd.read_csv(map_file)
+#
+    ## Filter BAM files that correspond to the selected BED
+    #valid_bam_files = mapping_df[mapping_df['BED_File'] == region]['BAM_File'].tolist()
 
     # Allow the user to select BAM files in a multi-selection dropdown
     container = st.container()
-    all_bam_files = [Path(f).name for f in bam_files if Path(f).name in valid_bam_files]
+    all_bam_files = [Path(f).name for f in bam_files]
     
     if region:
         all = st.checkbox("Select all ")
@@ -127,6 +107,7 @@ def calculate_average_read_depth(depth_path):
 
 
 
+
 # Function to count coverage at different levels
 def count_coverage(depth_path):
     #bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0} # Original
@@ -156,10 +137,7 @@ def count_coverage(depth_path):
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
 # Modified function to process files
-def process_files(option_bam, region, bed_folder, bam_folder, depth_folder, map_file, opt):
-    # Read the mapping file
-    mapping_df = pd.read_csv(map_file)
-    
+def process_files(option_bam, region, bam_folder, depth_folder, opt):
     if opt == "Single Gene":
         
 
@@ -213,9 +191,11 @@ def display_results(results, opt):
             )
 
         df.progress_apply(lambda x: sleep(0.15), axis=1)
-
-        # Display the DataFrame with column configurations
-        st.dataframe(df, column_config=column_configs)
+        if df['Average_Read_Depth'].isnull().all():
+            st.warning("No results found. Please check the selected files and try again.")
+        else:
+            # Display the DataFrame with column configurations
+            st.dataframe(df, column_config=column_configs)
     elif opt == "Gene Panel":
         st.header("Results - Gene Panel")
 
@@ -238,8 +218,12 @@ def display_results(results, opt):
 
         df.progress_apply(lambda x: sleep(0.15), axis=1)
 
-        # Display the DataFrame with column configurations
-        st.dataframe(df, column_config=column_configs)
+        if df['Average_Read_Depth'].isnull().all():
+            st.warning("No results found. Please check the selected files and try again.")
+        else:
+            # Display the DataFrame with column configurations
+            st.dataframe(df, column_config=column_configs)
+            
     elif opt == "Exome":
         st.header("Results - Exome")
 
@@ -263,8 +247,11 @@ def display_results(results, opt):
 
         df.progress_apply(lambda x: sleep(0.15), axis=1)
 
-        # Display the DataFrame with column configurations
-        st.dataframe(df, column_config=column_configs)
+        if df['Average_Read_Depth'].isnull().all():
+            st.warning("No results found. Please check the selected files and try again.")
+        else:
+            # Display the DataFrame with column configurations
+            st.dataframe(df, column_config=column_configs)
 
 
 def working_directory(opt):
@@ -337,7 +324,7 @@ def app_ARDC():
             )
             opt = st.radio(
                 "Select an option",
-                ["Single Gene", "Gene Panel", "Exome", "Other"],
+                ["Single Gene", "Gene Panel", "Exome"],
                 key="visibility",
                 label_visibility="visible",
                 disabled=False,
@@ -403,17 +390,6 @@ def app_ARDC():
                         "- Ensure that the selected :red[Exome] corresponds to the genomic region you want to analyze."
                     )
                 )
-            elif opt == "Other":
-                st.markdown(
-                    "## :red[Step 3.] Other",
-                    help=(
-                        "**Please input the directory paths.**\n"
-                        "- The selection of a :red[Gene of Interest] is crucial for calculating the :red[average read depth].\n"
-                        "- A :red[Gene of Interest] defines the genomic region of interest.\n"
-                        "- The :red[read depth] will be calculated specifically for these region.\n"
-                        "- Ensure that the selected :red[Gene of Interest] corresponds to the genomic region you want to analyze."
-                    )
-                )
 
             region = region_of_interest(opt, assembly)
             
@@ -429,7 +405,7 @@ def app_ARDC():
                 )
             )
             
-            bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == BAM_EXTENSION]
+            bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == ".bam"]
             option_bam = select_bam(bam_files, region, map_file)
         
         
@@ -437,8 +413,10 @@ def app_ARDC():
         #Progress Bar
         stqdm.pandas(desc="Calculating Results")
         # Process selected files and display results
-        results = process_files(option_bam, region, bed_folder, bam_folder, depth_folder, map_file, opt)
+        results = process_files(option_bam, region, bam_folder, depth_folder, opt)
+      
         display_results(results, opt)
+        
         
 
 
