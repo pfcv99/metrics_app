@@ -17,6 +17,7 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_CALR_MPL.bed,1115606.bam
 ,JAK2_CALR_MPL.bed,1116458.bam
 ,JAK2_CALR_MPL.bed,1115849.bam
+,JAK2_CALR_MPL.bed,1119407.bam
 ,PKD2_8bp.bed,1110366_PKD2.bam
 ,PKD1_8bp.bed,1110366_PKD1.bam
 ,PKD2_8bp.bed,1113707_PKD2.bam
@@ -39,3 +40,4 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,MYD88_ex5_8bp.bed,1117753.bam
 ,MYD88_ex5_8bp.bed,1118411.bam
 ,MYD88_ex5_8bp.bed,1118377.bam
+,MYD88_ex5_8bp.bed,1119276.bam
