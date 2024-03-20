@@ -61,7 +61,7 @@ def select_bam(bam_files, region, map_file):
     #mapping_df = pd.read_csv(map_file)
 #
     ## Filter BAM files that correspond to the selected BED
-    #valid_bam_files = mapping_df[mapping_df['BED_File'] == region]['BAM_File'].tolist()
+    #valid_bam_files = mapping_df[mapping_df['Region'] == region]['BAM_File'].tolist()
 
     # Allow the user to select BAM files in a multi-selection dropdown
     container = st.container()
@@ -84,61 +84,61 @@ def select_bam(bam_files, region, map_file):
     return option_bam
 
 # Function to calculate average read depth
-def compute_read_depth(bam_path, bed_path, depth_path, region):
-    
-    sd.run_samtools_depth_v2(bam_path, bed_path, depth_path, region)
-    average_read_depth = calculate_average_read_depth(depth_path)
-    coverage_stats = count_coverage(depth_path)
-    date_utc = pd.Timestamp.utcnow()
+def compute_read_depth(bam_path, bed_path, depth_path, region, opt):
+    if opt == "Single Gene":
+        sd.run_samtools_depth_v2(bam_path, bed_path, depth_path, region)
+        average_read_depth, min_read_depth, max_read_depth = calculate_depth_statistics(depth_path)
+        coverage_stats = count_coverage(depth_path)
+        date_utc = pd.Timestamp.utcnow()
 
-    return {
-        'Date': date_utc,
-        'Average_Read_Depth': average_read_depth,
-        **coverage_stats
-    }
+        return {
+            'Date': date_utc,
+            'Average_Read_Depth': average_read_depth,
+            'Min_Read_Depth': min_read_depth,
+            'Max_Read_Depth': max_read_depth,
+            **coverage_stats
+        }
+    elif opt == "Gene Panel":
+        sd.run_samtools_depth_v3(bam_path, bed_path, depth_path, region)
+        average_read_depth, min_read_depth, max_read_depth = calculate_depth_statistics(depth_path)
+        coverage_stats = count_coverage(depth_path)
+        date_utc = pd.Timestamp.utcnow()
 
+        return {
+            'Date': date_utc,
+            'Average_Read_Depth': average_read_depth,
+            'Min_Read_Depth': min_read_depth,
+            'Max_Read_Depth': max_read_depth,
+            **coverage_stats
+        }       
 
-## Function to calculate average depth
-#def calculate_average_read_depth(depth_path):
-#    awk_command = f"awk '{{sum += $3}} END {{print sum/NR}}' {depth_path}"
-#    result = subprocess.run(awk_command, shell=True, capture_output=True, text=True)
-#    return float(result.stdout.strip()) if result.stdout.strip() else None
-
-def calculate_average_read_depth(depth_path):
+# Function to calculate average depth, min, and max
+def calculate_depth_statistics(depth_path):
     depths = []
 
     with open(depth_path, 'r') as file:
         for line in file:
-            depth = line.strip().split()[2]
-            depths.append(float(depth))
+            depth = float(line.strip().split()[2])
+            depths.append(depth)
 
     if depths:
         average_depth = sum(depths) / len(depths)
-        return round(average_depth, 2)
+        min_depth = min(depths)
+        max_depth = max(depths)
+        return round(average_depth, 2), min_depth, max_depth
     else:
-        return None
-
-
-
-
-
+        return None, None, None
 
 # Function to count coverage at different levels
 def count_coverage(depth_path):
-    #bases_with_coverage = {1: 0, 10: 0, 15: 0, 20: 0, 30: 0, 50: 0, 100: 0, 500: 0} # Original
-    bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0} # Reverse
+    bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0}
 
     with open(depth_path) as file:
         lines = file.readlines()
         total_bases = len(lines)
 
-        #if total_bases == 0:
-        #    return {'Coverage_1x(%)': None, 'Coverage_10x(%)': None, 'Coverage_15x(%)': None ,'Coverage_20x(%)': None,
-        #            'Coverage_30x(%)': None, 'Coverage_50x(%)': None, 'Coverage_100x(%)': None, 'Coverage_500x(%)': None}
-        
         if total_bases == 0:
-            return {'Coverage_500x(%)': None, 'Coverage_100x(%)': None, 'Coverage_50x(%)': None ,'Coverage_30x(%)': None,
-                    'Coverage_20x(%)': None, 'Coverage_15x(%)': None, 'Coverage_10x(%)': None, 'Coverage_1x(%)': None}
+            return {f'Coverage_{cov}x(%)': None for cov in bases_with_coverage}
 
         for line in lines:
             fields = line.strip().split()
@@ -159,15 +159,11 @@ def process_files(option_bam, region, bam_folder, depth_folder, opt):
 
         for bam_file in option_bam:
             bam_path = bam_folder / bam_file
-            bed_path = "data/regions/MANE_genomic/UCSC_hg19_exons_modif_canonical.bed"
+            bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
             depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
 
-            result = compute_read_depth(bam_path, bed_path, depth_file, region)
-            result.update({'BAM_File': bam_file, 'BED_File': region})
-
-            ## Add 'OMNOMICS_Average_Read_Depth' column using mapping information
-            #mapping_info = mapping_df[mapping_df['BAM_File'] == bam_file]['OMNOMICS_Average_Read_Depth'].values
-            #result['OMNOMICS_Average_Read_Depth'] = mapping_info[0] if len(mapping_info) > 0 else None
+            result = compute_read_depth(bam_path, bed_path, depth_file, region, opt)
+            result.update({'BAM_File': bam_file, 'Region': region})
 
             results.append(result)
 
@@ -176,7 +172,6 @@ def process_files(option_bam, region, bam_folder, depth_folder, opt):
     elif opt == "Gene Panel":
         # Gene Panel
         print("Gene Panel")
-
     
     elif opt == "Exome":
         # Exome
@@ -191,7 +186,7 @@ def display_results(results, opt):
         df = pd.DataFrame(results)
         df.set_index('Date', inplace=True)
         # Replace the line that sets ordered_columns with the following
-        ordered_columns = ['BED_File','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File']]
+        ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
 
         df = df[ordered_columns]
 
@@ -217,7 +212,7 @@ def display_results(results, opt):
         df = pd.DataFrame(results)
         df.set_index('Date', inplace=True)
         # Replace the line that sets ordered_columns with the following
-        ordered_columns = ['BED_File','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File']]
+        ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
 
         df = df[ordered_columns]
 
@@ -246,7 +241,7 @@ def display_results(results, opt):
         df = pd.DataFrame(results)
         df.set_index('Date', inplace=True)
         # Replace the line that sets ordered_columns with the following
-        ordered_columns = ['BED_File','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'BED_File']]
+        ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
 
         df = df[ordered_columns]
 

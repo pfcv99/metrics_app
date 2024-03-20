@@ -40,3 +40,26 @@ st.title('DataFrame Consolidado')
 
 # Mostrar DataFrame
 st.write(df)
+
+
+
+
+
+import subprocess
+from pathlib import Path
+
+def run_samtools_depth_v3(bam_path, bed_path, depth_dir, gene_list):
+    for gene_name in gene_list:
+        # Comando para executar samtools depth com filtro diretamente no comando awk
+        depth_command = f"awk -v gene={gene_name} '{{if ($4 == gene) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_dir}/{gene_name}.depth"
+
+        # Executa o comando samtools depth com o filtro aplicado diretamente no comando awk
+        subprocess.run(depth_command, shell=True)
+
+# Exemplo de uso:
+bam_path = Path("data/mapped/1106179.bam")
+bed_path = Path("data/regions/gene_exons/UCSC_hg19_exons_modif_canonical.bed")
+depth_output_dir = Path("data")  # Diretório para os arquivos de saída de profundidade
+gene_list = ["DICER1","ATM","AXIN2"]  # Lista de genes a serem processados
+
+run_samtools_depth_v3(bam_path, bed_path, depth_output_dir, gene_list)
