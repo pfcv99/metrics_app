@@ -36,6 +36,7 @@ def region_of_interest(opt, assembly):
         panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
         if panel:
             st.table(df[df['Panel_Name_EN_EMEDGENE'] == panel]["Genes"])
+            st.write('<i class="fa-solid fa-trash"/>', unsafe_allow_html=True)
         genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
         region = genes_lst
         with st.popover("Add new"):
