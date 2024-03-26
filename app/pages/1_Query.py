@@ -19,7 +19,6 @@ streamlit_page_config.set_page_configuration()
 logo.add_logo()
 
 
-# Function to select BED file
 def region_of_interest(opt, assembly):
     
     if assembly == "GRCh38/hg38":
@@ -31,16 +30,24 @@ def region_of_interest(opt, assembly):
     if opt == "Single Gene":
         region = st.selectbox('Select a Gene of Interest', bed_files, index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
     elif opt == "Gene Panel":
-        panel = st.radio('Select a Gene Panel', ["Unilabs Panel", "Custom Panel"], index=0, label_visibility="visible", horizontal=True)
-        if panel == "Unilabs Panel":
-            data = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=',', header=0)
-            df = pd.DataFrame(data)
-            panel_lst = df['Panel_Name_EN_EMEDGENE'].unique().tolist()
-            panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
-            genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
-            region = genes_lst 
-        elif panel == "Custom Panel":
-            region = st.multiselect('Select some Genes', bed_files, label_visibility="collapsed",placeholder="Select some Genes")
+        data = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=',', header=0)
+        df = pd.DataFrame(data)
+        panel_lst = df['Panel_Name_EN_EMEDGENE'].unique().tolist()
+        panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
+        if panel:
+            st.table(df[df['Panel_Name_EN_EMEDGENE'] == panel]["Genes"])
+        genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
+        region = genes_lst
+        with st.popover("Add new"):
+            panel_name = st.text_input("Panel Name", placeholder="Enter Panel Name")
+            genes = st.text_area("Add Genes", placeholder="Enter gene symbols separated by commas")
+            if st.button("Create Panel"):
+                # Add the new panel to the DataFrame and save to CSV
+                new_panel = {'Panel_Name_EN_EMEDGENE': panel_name, 'Genes': genes}
+                df = pd.concat([df, pd.DataFrame([new_panel])], ignore_index=True)
+                df.to_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', index=False)  # Save updated DataFrame to CSV
+                st.rerun() #TO IMPROVE: not the ideal way to rerun the page
+                
     elif opt == "Exome":
         region = st.selectbox('Select an Exome', bed_files, index=None, label_visibility="collapsed",placeholder="Select an Exome")
     
