@@ -35,8 +35,17 @@ def region_of_interest(opt, assembly):
         panel_lst = df['Panel_Name_EN_EMEDGENE'].unique().tolist()
         panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
         if panel:
+            hide_streamlit_style = """
+            <style>
+            tbody th {display:none}
+            .blank{
+            display: none;
+            }
+            </style>
+            """
+            st.markdown(hide_streamlit_style, unsafe_allow_html=True)
             st.table(df[df['Panel_Name_EN_EMEDGENE'] == panel]["Genes"])
-            st.write('<i class="fa-solid fa-trash"/>', unsafe_allow_html=True)
+        
         genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
         region = genes_lst
         with st.popover("Add new"):
@@ -102,24 +111,23 @@ def compute_read_depth(bam_path, bed_path, depth_path, region, opt):
         return {
             'Date': date_utc,
             'Average_Read_Depth': average_read_depth,
-            'Min_Read_Depth': min_read_depth,
-            'Max_Read_Depth': max_read_depth,
             **coverage_stats
         }
     elif opt == "Gene Panel":
-        sd.run_samtools_depth_v3(bam_path, bed_path, depth_path, region)
-        average_read_depth, min_read_depth, max_read_depth = calculate_depth_statistics(depth_path)
-        coverage_stats = count_coverage(depth_path)
-        date_utc = pd.Timestamp.utcnow()
+        for gene in region:
+            sd.run_samtools_depth_v3(bam_path, bed_path, depth_path, gene)
+            average_read_depth, min_read_depth, max_read_depth = calculate_depth_statistics(depth_path)
+            coverage_stats = count_coverage(depth_path)
+            date_utc = pd.Timestamp.utcnow()
 
-        return {
-            'Date': date_utc,
-            'Average_Read_Depth': average_read_depth,
-            'Min_Read_Depth': min_read_depth,
-            'Max_Read_Depth': max_read_depth,
-            **coverage_stats
-        }       
-
+            return {
+                'Date': date_utc,
+                'Average_Read_Depth': average_read_depth,
+                'Min_Read_Depth': min_read_depth,
+                'Max_Read_Depth': max_read_depth,
+                **coverage_stats
+            }
+            
 # Function to calculate average depth, min, and max
 def calculate_depth_statistics(depth_path):
     depths = []
@@ -173,13 +181,18 @@ def single_gene(option_bam, region, bam_folder, depth_folder, opt):
 
 def gene_panel(option_bam, region, bam_folder, depth_folder, opt):
     results = []
+    bed_path = "data/regions/genome_exons/MANE_hg38_exons_modif_MANE.bed"
+    
     for bam_file in option_bam:
-        bam_path = bam_folder / bam_file
-        bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
-        depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
-        result = compute_read_depth(bam_path, bed_path, depth_file, region, opt)
-        result.update({'BAM_File': bam_file, 'Region': region})
-        results.append(result)
+        bam_path = os.path.join(bam_folder, bam_file)
+        depth_files = [f for f in os.listdir(depth_folder) if f.startswith(os.path.basename(bam_file)[:-4])]
+        
+        for depth_file in depth_files:
+            depth_path = os.path.join(depth_folder, depth_file)
+            result = compute_read_depth(bam_path, bed_path, depth_path, region, opt)
+            result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': region})
+            results.append(result)
+    
     return results
     
 # Function to display results in a DataFrame
@@ -213,7 +226,7 @@ def display_results(results, opt):
     elif opt == "Gene Panel":
         st.header("Results - Gene Panel")
 
-
+        
         df = pd.DataFrame(results)
         df.set_index('Date', inplace=True)
         # Replace the line that sets ordered_columns with the following

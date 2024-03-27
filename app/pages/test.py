@@ -63,3 +63,6 @@ depth_output_dir = Path("data")  # Diretório para os arquivos de saída de prof
 gene_list = ["DICER1","ATM","AXIN2"]  # Lista de genes a serem processados
 
 run_samtools_depth_v3(bam_path, bed_path, depth_output_dir, gene_list)
+
+
+
