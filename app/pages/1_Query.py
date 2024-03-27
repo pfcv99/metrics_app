@@ -160,31 +160,28 @@ def count_coverage(depth_path):
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
 # Modified function to process files
-def process_files(option_bam, region, bam_folder, depth_folder, opt):
-    if opt == "Single Gene":
+def single_gene(option_bam, region, bam_folder, depth_folder, opt):
+    results = []
+    for bam_file in option_bam:
+        bam_path = bam_folder / bam_file
+        bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
+        depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
+        result = compute_read_depth(bam_path, bed_path, depth_file, region, opt)
+        result.update({'BAM_File': bam_file, 'Region': region})
+        results.append(result)
+    return results
 
-        results = []
-
-        for bam_file in option_bam:
-            bam_path = bam_folder / bam_file
-            bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
-            depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
-
-            result = compute_read_depth(bam_path, bed_path, depth_file, region, opt)
-            result.update({'BAM_File': bam_file, 'Region': region})
-
-            results.append(result)
-
-        return results
+def gene_panel(option_bam, region, bam_folder, depth_folder, opt):
+    results = []
+    for bam_file in option_bam:
+        bam_path = bam_folder / bam_file
+        bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
+        depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
+        result = compute_read_depth(bam_path, bed_path, depth_file, region, opt)
+        result.update({'BAM_File': bam_file, 'Region': region})
+        results.append(result)
+    return results
     
-    elif opt == "Gene Panel":
-        # Gene Panel
-        print("Gene Panel")
-    
-    elif opt == "Exome":
-        # Exome
-        print("Exome")
-
 # Function to display results in a DataFrame
 def display_results(results, opt):
     if opt == "Single Gene":
@@ -411,7 +408,12 @@ def app_ARDC():
         #Progress Bar
         stqdm.pandas(desc="Calculating Results")
         # Process selected files and display results
-        results = process_files(option_bam, region, bam_folder, depth_folder, opt)
+        if opt == "Single Gene":
+            results = single_gene(option_bam, region, bam_folder, depth_folder, opt)
+        elif opt == "Gene Panel":
+            results = gene_panel(option_bam, region, bam_folder, depth_folder, opt)
+        elif opt == "Exome":
+            results = exome(option_bam, region, bam_folder, depth_folder, opt)
       
         display_results(results, opt)
         
