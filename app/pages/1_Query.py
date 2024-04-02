@@ -167,6 +167,18 @@ def count_coverage(depth_path):
     percentage_with_coverage = {cov: (count / total_bases) * 100.0 for cov, count in bases_with_coverage.items()}
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
+def size_coding(bed_file):
+    with open(bed_file) as file:
+        lines = file.readlines()
+        total_bases = 0
+        for line in lines:
+            fields = line.strip().split()
+            total_bases += int(fields[2]) - int(fields[1])
+    return total_bases
+print(size_coding("data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"))
+
+
+
 # Modified function to process files
 def single_gene(option_bam, region, bam_folder, depth_folder, opt):
     results = []
@@ -317,10 +329,11 @@ def app_ARDC():
     st.markdown(
         "# Average read depth and coverage calculator\n#"
     )
-    with st.container(border = True):
+
         # Create two columns for layout
-        col1, col2 = st.columns(2)
-        with col1:
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.container(border = True):
             st.markdown(
                 "## :red[Step 1.] Analysis Type",
                 help=(
@@ -340,8 +353,9 @@ def app_ARDC():
                 )
 
             bam_folder, map_file, depth_folder = working_directory(opt)
-            
-        with col2:
+        
+    with col2:
+        with st.container(border = True):
             st.markdown(
                 "## :red[Step 2.] Genome Assembly",
                 help=(
@@ -361,10 +375,10 @@ def app_ARDC():
 
             
     
-    with st.container(border = True):
         # Create two columns for layout
-        col1, col2 = st.columns(2)
-        with col1:
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.container(border = True):
             if opt == "Single Gene":
                 st.markdown(
                     "## :red[Step 3.] Gene of Interest",
@@ -400,8 +414,11 @@ def app_ARDC():
                 )
 
             region = region_of_interest(opt, assembly)
-            
-        with col2:
+        
+           
+        
+    with col2:
+        with st.container(border = True):
             # Column for BAM file selection
             st.markdown(
                 "## :red[Step 4.] BAM file",
@@ -415,7 +432,31 @@ def app_ARDC():
             
             bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == ".bam"]
             option_bam = select_bam(bam_files, region, map_file)
-        
+            
+    with st.container(border = False):
+        if not region:
+            with st.popover("Query Examples"):
+                example = st.selectbox(
+                    'Select an example:',
+                    ('Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam',
+                     'Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam',
+                     'Exome > GRCh38/hg38 > Exome > 1101542.bam'),
+                    index=None,)
+                #VER MELHOR
+                if example == "Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam":
+                    opt = "Single Gene"
+                    assembly = "GRCh38/hg38"
+                    region = "PKD1"
+                    option_bam = ["1110366_PKD1.bam"]
+                elif example == "Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam":
+                    opt = "Gene Panel"
+                    assembly = "GRCh38/hg38"
+                    region = ["OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição"]
+                elif example == "Exome > GRCh38/hg38 > Exome > 1101542.bam":
+                    opt = "Exome"
+                    assembly = "GRCh38/hg38"
+                    region = "Exome"
+                    option_bam = ["1101542.bam"]
         
     if option_bam and region:
         #Progress Bar

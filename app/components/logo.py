@@ -13,7 +13,7 @@ def add_logo():
                 background-position: 20px 20px;
             }
             [data-testid="stSidebarNav"]::before {
-                content: "Menu";
+                content: "";
                 margin-left: 20px;
                 margin-bottom: 10px;
                 font-size: 35px;

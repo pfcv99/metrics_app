@@ -66,3 +66,35 @@ run_samtools_depth_v3(bam_path, bed_path, depth_output_dir, gene_list)
 
 
 
+def size_coding_for_gene(bed_file, gene_name):
+    gene_metrics = {"total_bases": 0, "num_exons": 0, "average_exon_size": 0}
+    with open(bed_file) as file:
+        lines = file.readlines()
+        for line in lines:
+            fields = line.strip().split()
+            if fields[3] == gene_name:  # Assumindo que o nome do gene está na quarta coluna
+                gene_size = int(fields[2]) - int(fields[1])
+                gene_metrics["total_bases"] += gene_size
+                gene_metrics["num_exons"] += 1
+    
+    # Calcular o tamanho médio dos exões para o gene
+    if gene_metrics["num_exons"] != 0:
+        gene_metrics["average_exon_size"] = gene_metrics["total_bases"] / gene_metrics["num_exons"]
+    
+    return gene_metrics
+
+gene_name = "PKD1"
+gene_metrics = size_coding_for_gene("data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed", gene_name)
+
+# Imprimir métricas para o gene PKD1
+print("Gene:", gene_name)
+print("Total de bases:", gene_metrics["total_bases"])
+print("Número de exões:", gene_metrics["num_exons"])
+print("Tamanho médio do exão:", gene_metrics["average_exon_size"])
+
+
+if st.button('Clique aqui'):
+    default_val = 'Texto de exemplo'
+    user_input = st.text_input("Digite algo aqui", value=default_val)
+
+
