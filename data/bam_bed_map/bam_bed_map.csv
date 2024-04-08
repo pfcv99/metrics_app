@@ -13,6 +13,7 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_CALR_MPL.bed,1120300.bam
 437,PKD2_8bp.bed,1107149_PKD2.bam
 271,PKD1_8bp.bed,1107149.bam
+271,PKD1.bed,1111972.cram
 891,TP53_8bp.bed,1110191.bam
 ,TP53.bed,1113842.bam
 ,JAK2_CALR_MPL.bed,1111799.bam
