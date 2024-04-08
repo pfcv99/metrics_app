@@ -10,6 +10,7 @@ from components import streamlit_page_config
 from components import samtools_depth as sd 
 from components import logo
 from components import genome_regions
+from components import gene_panel_creator as pc
 from time import sleep
 from stqdm import stqdm
 
@@ -18,22 +19,44 @@ streamlit_page_config.set_page_configuration()
 
 logo.add_logo()
 
+def step1_analysis_type():
+    analysis_type = st.radio(
+                "Select an option",
+                ["Single Gene", "Gene Panel", "Exome"],
+                key="analysis",
+                label_visibility="visible",
+                disabled=False,
+                horizontal=True
+                )
+    return analysis_type
 
-def region_of_interest(opt, assembly):
-    
+def step2_genome_assembly():
+    assembly = st.radio(
+                "Select an option",
+                ["GRCh37/hg19", "GRCh38/hg38"],
+                key="assembly",
+                label_visibility="visible",
+                disabled=False,
+                horizontal=True, index=1
+                )
     if assembly == "GRCh38/hg38":
-        bed_files = genome_regions.mane()
+        assembly_file = genome_regions.mane()
     elif assembly == "GRCh37/hg19":
-        bed_files = genome_regions.ucsc() 
+        assembly_file = genome_regions.ucsc() 
+    return assembly_file
+
+ 
+def step3_region_of_interest(analysis, assembly):
+    # IF ANALYSIS TYPE == SINGLE GENE
+    if analysis == "Single Gene":
+        region = st.selectbox('Select a Gene of Interest', assembly, key="region", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
     
-    # Allow the user to select a region of interest in a dropdown
-    if opt == "Single Gene":
-        region = st.selectbox('Select a Gene of Interest', bed_files, index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
-    elif opt == "Gene Panel":
+    # IF ANALYSIS TYPE == GENE PANEL
+    elif analysis == "Gene Panel":
         data = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=',', header=0)
         df = pd.DataFrame(data)
         panel_lst = df['Panel_Name_EN_EMEDGENE'].unique().tolist()
-        panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, label_visibility="collapsed",placeholder="Select a Gene Panel")
+        panel = st.selectbox('Select a Gene Panel', panel_lst, index=None, key="region", label_visibility="collapsed",placeholder="Select a Gene Panel")
         if panel:
             hide_streamlit_style = """
             <style>
@@ -48,38 +71,28 @@ def region_of_interest(opt, assembly):
         
         genes_lst = df[df['Panel_Name_EN_EMEDGENE'] == panel]['Genes'].tolist()
         region = genes_lst
-        with st.popover("Add new"):
-            panel_name = st.text_input("Panel Name", placeholder="Enter Panel Name")
-            genes = st.text_area("Add Genes", placeholder="Enter gene symbols separated by commas")
-            if st.button("Create Panel"):
-                # Add the new panel to the DataFrame and save to CSV
-                new_panel = {'Panel_Name_EN_EMEDGENE': panel_name, 'Genes': genes}
-                df = pd.concat([df, pd.DataFrame([new_panel])], ignore_index=True)
-                df.to_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', index=False)  # Save updated DataFrame to CSV
-                st.rerun() #TO IMPROVE: not the ideal way to rerun the page
-                
-    elif opt == "Exome":
-        region = st.selectbox('Select an Exome', bed_files, index=None, label_visibility="collapsed",placeholder="Select an Exome")
+        pc.panel_creator()
+        
+    # IF ANALYSIS TYPE == EXOME          
+    elif analysis == "Exome":
+        region = st.selectbox('Select an Exome', assembly, index=None, key="region", label_visibility="collapsed",placeholder="Select an Exome")
     
     # If no BED file is selected show error
     if not region:
-        if opt == "Single Gene":
+        if analysis == "Single Gene":
             st.info("No Gene of Interest selected. Please select a Gene of Interest.")
-        elif opt == "Gene Panel":
+        elif analysis == "Gene Panel":
             st.info("No Gene Panel selected. Please select a Gene Panel.")
-        elif opt == "Exome":
+        elif analysis == "Exome":
             st.info("No Exome selected. Please select an Exome.")
+    
             
     return region
 
-# Function to select BAM files based on the selected BED
-def select_bam(bam_files, region, map_file):
-    ## Read the mapping file
-    #mapping_df = pd.read_csv(map_file)
-#
-    ## Filter BAM files that correspond to the selected BED
-    #valid_bam_files = mapping_df[mapping_df['Region'] == region]['BAM_File'].tolist()
 
+
+# Function to select BAM files based on the selected BED
+def step4_bam_file(bam_files, region):
     # Allow the user to select BAM files in a multi-selection dropdown
     container = st.container()
     all_bam_files = [Path(f).name for f in bam_files]
@@ -90,22 +103,23 @@ def select_bam(bam_files, region, map_file):
         all = False
     
     if all != False:
-        option_bam = container.multiselect('Select BAM file(s)', all_bam_files, all_bam_files, label_visibility="collapsed",placeholder="Select a BAM file(s)")
+        bam = container.multiselect('Select BAM file(s)', all_bam_files, all_bam_files, key="bam", label_visibility="collapsed",placeholder="Select a BAM file(s)")
     else:
-        option_bam = container.multiselect('Select BAM file(s)', all_bam_files, label_visibility="collapsed",placeholder="Select a BAM file(s)")
+        bam = container.multiselect('Select BAM file(s)', all_bam_files, key="bam", label_visibility="collapsed",placeholder="Select a BAM file(s)")
 
     # If no BAM filread_depthes are selected, allow the user to upload BAM file(s)
-    if not option_bam:
+    if not bam:
         st.info("No BAM file(s) selected. Please select BAM file(s).")
 
-    return option_bam
+    return bam
+
 
 # Function to calculate average read depth
-def compute_read_depth(bam_path, bed_path, depth_path, region, opt):
-    if opt == "Single Gene":
+def compute_read_depth(bam_path, bed_path, depth_path, region, analysis):
+    if analysis == "Single Gene":
         sd.run_samtools_depth_v2(bam_path, bed_path, depth_path, region)
-        average_read_depth, min_read_depth, max_read_depth = calculate_depth_statistics(depth_path)
-        coverage_stats = count_coverage(depth_path)
+        average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
+        coverage_stats = sd.count_coverage(depth_path)
         date_utc = pd.Timestamp.utcnow()
 
         return {
@@ -113,11 +127,11 @@ def compute_read_depth(bam_path, bed_path, depth_path, region, opt):
             'Average_Read_Depth': average_read_depth,
             **coverage_stats
         }
-    elif opt == "Gene Panel":
+    elif analysis == "Gene Panel":
         for gene in region:
             sd.run_samtools_depth_v3(bam_path, bed_path, depth_path, gene)
-            average_read_depth, min_read_depth, max_read_depth = calculate_depth_statistics(depth_path)
-            coverage_stats = count_coverage(depth_path)
+            average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
+            coverage_stats = sd.count_coverage(depth_path)
             date_utc = pd.Timestamp.utcnow()
 
             return {
@@ -128,44 +142,7 @@ def compute_read_depth(bam_path, bed_path, depth_path, region, opt):
                 **coverage_stats
             }
             
-# Function to calculate average depth, min, and max
-def calculate_depth_statistics(depth_path):
-    depths = []
 
-    with open(depth_path, 'r') as file:
-        for line in file:
-            depth = float(line.strip().split()[2])
-            depths.append(depth)
-
-    if depths:
-        average_depth = sum(depths) / len(depths)
-        min_depth = min(depths)
-        max_depth = max(depths)
-        return round(average_depth, 2), min_depth, max_depth
-    else:
-        return None, None, None
-
-# Function to count coverage at different levels
-def count_coverage(depth_path):
-    bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0}
-
-    with open(depth_path) as file:
-        lines = file.readlines()
-        total_bases = len(lines)
-
-        if total_bases == 0:
-            return {f'Coverage_{cov}x(%)': None for cov in bases_with_coverage}
-
-        for line in lines:
-            fields = line.strip().split()
-            depth = float(fields[2])
-
-            for coverage, count in bases_with_coverage.items():
-                if depth >= coverage:
-                    bases_with_coverage[coverage] += 1
-
-    percentage_with_coverage = {cov: (count / total_bases) * 100.0 for cov, count in bases_with_coverage.items()}
-    return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
 def size_coding(bed_file):
     with open(bed_file) as file:
@@ -180,36 +157,36 @@ print(size_coding("data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed
 
 
 # Modified function to process files
-def single_gene(option_bam, region, bam_folder, depth_folder, opt):
+def single_gene(bam, region, bam_folder, depth_folder, analysis):
     results = []
-    for bam_file in option_bam:
+    for bam_file in bam:
         bam_path = bam_folder / bam_file
         bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
         depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
-        result = compute_read_depth(bam_path, bed_path, depth_file, region, opt)
+        result = compute_read_depth(bam_path, bed_path, depth_file, region, analysis)
         result.update({'BAM_File': bam_file, 'Region': region})
         results.append(result)
     return results
 
-def gene_panel(option_bam, region, bam_folder, depth_folder, opt):
+def gene_panel(bam, region, bam_folder, depth_folder, analysis):
     results = []
     bed_path = "data/regions/genome_exons/MANE_hg38_exons_modif_MANE.bed"
     
-    for bam_file in option_bam:
+    for bam_file in bam:
         bam_path = os.path.join(bam_folder, bam_file)
         depth_files = [f for f in os.listdir(depth_folder) if f.startswith(os.path.basename(bam_file)[:-4])]
         
         for depth_file in depth_files:
             depth_path = os.path.join(depth_folder, depth_file)
-            result = compute_read_depth(bam_path, bed_path, depth_path, region, opt)
+            result = compute_read_depth(bam_path, bed_path, depth_path, region, analysis)
             result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': region})
             results.append(result)
     
     return results
     
 # Function to display results in a DataFrame
-def display_results(results, opt):
-    if opt == "Single Gene":
+def display_results(results, analysis):
+    if analysis == "Single Gene":
         st.header("Results - Single Gene")
 
 
@@ -235,7 +212,7 @@ def display_results(results, opt):
         else:
             # Display the DataFrame with column configurations
             st.dataframe(df, column_config=column_configs)
-    elif opt == "Gene Panel":
+    elif analysis == "Gene Panel":
         st.header("Results - Gene Panel")
 
         
@@ -263,7 +240,7 @@ def display_results(results, opt):
             # Display the DataFrame with column configurations
             st.dataframe(df, column_config=column_configs)
             
-    elif opt == "Exome":
+    elif analysis == "Exome":
         st.header("Results - Exome")
 
 
@@ -293,22 +270,19 @@ def display_results(results, opt):
             st.dataframe(df, column_config=column_configs)
 
 
-def working_directory(opt):
+def working_directory(analysis):
     while True:
         try:
-            if opt == "Single Gene":
+            if analysis == "Single Gene":
                 bam_folder = Path("./data/mapped")
-                map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
                 
-            elif opt == "Gene Panel":
+            elif analysis == "Gene Panel":
                 bam_folder = Path("./data/mapped")
-                map_file = Path("./data/bam_bed_map/gene_panels_bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
             
-            elif opt == "Exome":
+            elif analysis == "Exome":
                 bam_folder = Path("./data/mapped")
-                map_file = Path("./data/bam_bed_map/bam_bed_map.csv")
                 depth_folder = Path("./data/depth")
             
             # If everything is successful, break out of the loop
@@ -319,9 +293,31 @@ def working_directory(opt):
             st.warning("Please resolve the error before continuing.")
             # Continue the loop if there is an error
 
-    return bam_folder, map_file, depth_folder
+    return bam_folder, depth_folder
 
-
+def example():
+    with st.popover("Query Examples"):
+        example = st.selectbox(
+            'Select an example:',
+            ('Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam',
+             'Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam',
+             'Exome > GRCh38/hg38 > Exome > 1101542.bam'),
+            index=None,)
+        #VER MELHOR
+        if example == "Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam":
+            st.session_state.analysis = "Single Gene"
+            st.session_state.assembly = "GRCh38/hg38"
+            st.session_state.region = "PKD1"
+            st.session_state.bam = ["1110366_PKD1.bam"]
+        elif example == "Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam":
+            st.session_state.analysis = "Gene Panel"
+            st.session_state.assembly = "GRCh38/hg38"
+            st.session_state.region = ["OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição"]
+        elif example == "Exome > GRCh38/hg38 > Exome > 1101542.bam":
+            st.session_state.analysis = "Exome"
+            st.session_state.assembly = "GRCh38/hg38"
+            st.session_state.region = "Exome"
+            st.session_state.bam = ["1101542.bam"]
 
 # Function to define Streamlit app
 def app_ARDC():    
@@ -343,16 +339,9 @@ def app_ARDC():
                     "- Make sure the necessary files for analysis are in the respective directory."
                 )
             )
-            opt = st.radio(
-                "Select an option",
-                ["Single Gene", "Gene Panel", "Exome"],
-                key="visibility",
-                label_visibility="visible",
-                disabled=False,
-                horizontal=True
-                )
+            analysis = step1_analysis_type()
 
-            bam_folder, map_file, depth_folder = working_directory(opt)
+            bam_folder, depth_folder = working_directory(analysis)
         
     with col2:
         with st.container(border = True):
@@ -365,13 +354,7 @@ def app_ARDC():
                     "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
                 )
             )
-            assembly = st.radio(
-                "Select an option",
-                ["GRCh37/hg19", "GRCh38/hg38"],
-                label_visibility="visible",
-                disabled=False,
-                horizontal=True, index=1
-                )
+            assembly = step2_genome_assembly()
 
             
     
@@ -379,7 +362,7 @@ def app_ARDC():
     col1, col2 = st.columns(2)
     with col1:
         with st.container(border = True):
-            if opt == "Single Gene":
+            if analysis == "Single Gene":
                 st.markdown(
                     "## :red[Step 3.] Gene of Interest",
                     help=(
@@ -390,7 +373,7 @@ def app_ARDC():
                         "- Ensure that the selected :red[Gene of Interest] corresponds to the genomic region you want to analyze."
                     )
                 )
-            elif opt == "Gene Panel":
+            elif analysis == "Gene Panel":
                 st.markdown(
                     "## :red[Step 3.] Gene Panel",
                     help=(
@@ -401,7 +384,7 @@ def app_ARDC():
                         "- Ensure that the selected :red[Gene Panel] corresponds to the genomic region you want to analyze."
                     )
                 )
-            elif opt == "Exome":
+            elif analysis == "Exome":
                 st.markdown(
                     "## :red[Step 3.] Exome",
                     help=(
@@ -413,8 +396,22 @@ def app_ARDC():
                     )
                 )
 
-            region = region_of_interest(opt, assembly)
+            region = step3_region_of_interest(analysis, assembly)
         
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
            
         
     with col2:
@@ -431,45 +428,24 @@ def app_ARDC():
             )
             
             bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == ".bam" or f.suffix == ".cram"]
-            option_bam = select_bam(bam_files, region, map_file)
+            bam = step4_bam_file(bam_files, region)
             
     with st.container(border = False):
         if not region:
-            with st.popover("Query Examples"):
-                example = st.selectbox(
-                    'Select an example:',
-                    ('Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam',
-                     'Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam',
-                     'Exome > GRCh38/hg38 > Exome > 1101542.bam'),
-                    index=None,)
-                #VER MELHOR
-                if example == "Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam":
-                    opt = "Single Gene"
-                    assembly = "GRCh38/hg38"
-                    region = "PKD1"
-                    option_bam = ["1110366_PKD1.bam"]
-                elif example == "Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam":
-                    opt = "Gene Panel"
-                    assembly = "GRCh38/hg38"
-                    region = ["OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição"]
-                elif example == "Exome > GRCh38/hg38 > Exome > 1101542.bam":
-                    opt = "Exome"
-                    assembly = "GRCh38/hg38"
-                    region = "Exome"
-                    option_bam = ["1101542.bam"]
+            example()
         
-    if option_bam and region:
+    if bam and region:
         #Progress Bar
         stqdm.pandas(desc="Calculating Results")
         # Process selected files and display results
-        if opt == "Single Gene":
-            results = single_gene(option_bam, region, bam_folder, depth_folder, opt)
-        elif opt == "Gene Panel":
-            results = gene_panel(option_bam, region, bam_folder, depth_folder, opt)
-        elif opt == "Exome":
-            results = exome(option_bam, region, bam_folder, depth_folder, opt)
+        if analysis == "Single Gene":
+            results = single_gene(bam, region, bam_folder, depth_folder, analysis)
+        elif analysis == "Gene Panel":
+            results = gene_panel(bam, region, bam_folder, depth_folder, analysis)
+        elif analysis == "Exome":
+            results = exome(bam, region, bam_folder, depth_folder, analysis)
       
-        display_results(results, opt)
+        display_results(results, analysis)
         
         
 
