@@ -113,6 +113,20 @@ def step4_bam_file(bam_files, region):
 
     return bam
 
+def size_coding(assembly_file, region):
+    size_coding = 0
+
+    with open(assembly_file, 'r') as file:
+        for line in file:
+            fields = line.strip().split('\t')
+            if len(fields) < 7:
+                continue  # Ignorar linhas vazias ou incompletas
+
+            # Supondo que o nome do gene esteja na primeira coluna
+            if fields[3] == region:
+                size_coding += int(fields[6])  # A coluna 7 contém o size_coding
+
+    return size_coding
 
 # Function to calculate average read depth
 def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis):
@@ -121,23 +135,14 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis):
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
         coverage_stats = sd.count_coverage(depth_path)
         date_utc = pd.Timestamp.utcnow()
-        size_coding = 0
-        with open(assembly_file, 'r') as file:
-            for line in file:
-                fields = line.strip().split('\t')
-                if len(fields) < 7:
-                    continue  # Ignorar linhas vazias ou incompletas
-                
-                # Supondo que o nome do gene esteja na primeira coluna
-                if fields[3] == region:
-                    size_coding += int(fields[6])
-            return {
-                'Date': date_utc,
-                'Average_Read_Depth': average_read_depth,
-                'Size_Coding': size_coding,
-                **coverage_stats,
-                
-            }
+        
+        return {
+            'Date': date_utc,
+            'Average_Read_Depth': average_read_depth,
+            'Size_Coding': size_coding(assembly_file, region),
+            **coverage_stats,
+            
+        }
     elif analysis == "Gene Panel":
         for gene in region:
             sd.run_samtools_depth_v3(bam_path, assembly_file, depth_path, gene)
@@ -148,6 +153,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis):
             return {
                 'Date': date_utc,
                 'Average_Read_Depth': average_read_depth,
+                'Size_Coding': size_coding(assembly_file, region),
                 'Min_Read_Depth': min_read_depth,
                 'Max_Read_Depth': max_read_depth,
                 **coverage_stats
@@ -199,30 +205,33 @@ def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file):
 def display_results(results, analysis):
     if analysis == "Single Gene":
         st.header("Results - Single Gene")
+        tab1, tab2 = st.tabs(["Overview", "Details"])
+        with tab1:
+            df = pd.DataFrame(results)
+            df.set_index('Date', inplace=True)
+            # Replace the line that sets ordered_columns with the following
+            ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
 
+            df = df[ordered_columns]
 
-        df = pd.DataFrame(results)
-        df.set_index('Date', inplace=True)
-        # Replace the line that sets ordered_columns with the following
-        ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
+            column_configs = {}
+            for column in df.columns[df.columns.str.startswith('Coverage')]:
+                column_configs[column] = st.column_config.ProgressColumn(
+                    help="Coverage percentage",
+                    format="%.2f",
+                    min_value=0,
+                    max_value=100
+                )
 
-        df = df[ordered_columns]
-
-        column_configs = {}
-        for column in df.columns[df.columns.str.startswith('Coverage')]:
-            column_configs[column] = st.column_config.ProgressColumn(
-                help="Coverage percentage",
-                format="%.2f",
-                min_value=0,
-                max_value=100
-            )
-
-        df.progress_apply(lambda x: sleep(0.15), axis=1)
-        if df['Average_Read_Depth'].isnull().all():
-            st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
-        else:
-            # Display the DataFrame with column configurations
-            st.dataframe(df, column_config=column_configs)
+            df.progress_apply(lambda x: sleep(0.15), axis=1)
+            if df['Average_Read_Depth'].isnull().all():
+                st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
+            else:
+                # Display the DataFrame with column configurations
+                st.dataframe(df, column_config=column_configs)
+        with tab2:
+            st.write("Overview")
+            
     elif analysis == "Gene Panel":
         st.header("Results - Gene Panel")
 
