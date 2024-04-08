@@ -430,7 +430,7 @@ def app_ARDC():
                 )
             )
             
-            bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == ".bam"]
+            bam_files = [f.name for f in bam_folder.iterdir() if f.suffix == ".bam" or f.suffix == ".cram"]
             option_bam = select_bam(bam_files, region, map_file)
             
     with st.container(border = False):
