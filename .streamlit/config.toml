@@ -153,8 +153,8 @@
 
 # Automatically rerun script when the file is modified on disk.
 
-# Default: false
-# runOnSave = false
+# Default: true
+# runOnSave = true
 
 # The address where the server will listen for client and browser
 # connections. Use this if you want to bind the server to a specific address.
@@ -276,7 +276,7 @@
 
 # The preset Streamlit theme that your custom theme inherits from.
 # One of "light" or "dark".
-# base =
+base = "light"
 
 # Primary accent color for interactive elements.
 # primaryColor =
@@ -292,5 +292,5 @@
 
 # Font family for all text in the app, except code blocks. One of "sans serif",
 # "serif", or "monospace".
-# font =
+# font = 
 

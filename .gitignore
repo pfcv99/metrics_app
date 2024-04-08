@@ -9,6 +9,8 @@ data/regions/*
 !data/depth/output_1111751_PKD1.depth
 !data/mapped/1111751_PKD1.bam
 !data/regions/PKD1_8bp.bed
+!data/regions/genome_exons/MANE_hg38_exons_modif_MANE.bed
+!data/regions/gene_panels/BED_Files_Emedgene_2.csv
 
 
 # OS generated files #
