@@ -115,21 +115,32 @@ def step4_bam_file(bam_files, region):
 
 
 # Function to calculate average read depth
-def compute_read_depth(bam_path, bed_path, depth_path, region, analysis):
+def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis):
     if analysis == "Single Gene":
-        sd.run_samtools_depth_v2(bam_path, bed_path, depth_path, region)
+        sd.run_samtools_depth_v2(bam_path, assembly_file, depth_path, region)
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
         coverage_stats = sd.count_coverage(depth_path)
         date_utc = pd.Timestamp.utcnow()
-
-        return {
-            'Date': date_utc,
-            'Average_Read_Depth': average_read_depth,
-            **coverage_stats
-        }
+        size_coding = 0
+        with open(assembly_file, 'r') as file:
+            for line in file:
+                fields = line.strip().split('\t')
+                if len(fields) < 7:
+                    continue  # Ignorar linhas vazias ou incompletas
+                
+                # Supondo que o nome do gene esteja na primeira coluna
+                if fields[3] == region:
+                    size_coding += int(fields[6])
+            return {
+                'Date': date_utc,
+                'Average_Read_Depth': average_read_depth,
+                'Size_Coding': size_coding,
+                **coverage_stats,
+                
+            }
     elif analysis == "Gene Panel":
         for gene in region:
-            sd.run_samtools_depth_v3(bam_path, bed_path, depth_path, gene)
+            sd.run_samtools_depth_v3(bam_path, assembly_file, depth_path, gene)
             average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
             coverage_stats = sd.count_coverage(depth_path)
             date_utc = pd.Timestamp.utcnow()
@@ -142,18 +153,6 @@ def compute_read_depth(bam_path, bed_path, depth_path, region, analysis):
                 **coverage_stats
             }
             
-
-
-def size_coding(bed_file):
-    with open(bed_file) as file:
-        lines = file.readlines()
-        total_bases = 0
-        for line in lines:
-            fields = line.strip().split()
-            total_bases += int(fields[2]) - int(fields[1])
-    return total_bases
-
-
 
 
 def single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file):
