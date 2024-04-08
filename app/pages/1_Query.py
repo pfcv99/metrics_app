@@ -152,25 +152,37 @@ def size_coding(bed_file):
             fields = line.strip().split()
             total_bases += int(fields[2]) - int(fields[1])
     return total_bases
-print(size_coding("data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"))
 
 
 
-# Modified function to process files
-def single_gene(bam, region, bam_folder, depth_folder, analysis):
+
+def single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file):
     results = []
+    
     for bam_file in bam:
         bam_path = bam_folder / bam_file
-        bed_path = "data/regions/genome_exons/UCSC_hg19_exons_modif_canonical.bed"
         depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
-        result = compute_read_depth(bam_path, bed_path, depth_file, region, analysis)
+        result = compute_read_depth(bam_path, assembly_file, depth_file, region, analysis)
         result.update({'BAM_File': bam_file, 'Region': region})
         results.append(result)
     return results
 
-def gene_panel(bam, region, bam_folder, depth_folder, analysis):
+def gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file):
     results = []
-    bed_path = "data/regions/genome_exons/MANE_hg38_exons_modif_MANE.bed"
+    
+    for bam_file in bam:
+        bam_path = os.path.join(bam_folder, bam_file)
+        depth_file = os.path.join(depth_folder, f"{os.path.basename(bam_file)[:-4]}.depth")
+        
+        for gene in region:
+            result = compute_read_depth(bam_path, assembly_file, depth_file, gene, analysis)
+            result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': gene})
+            results.append(result)
+    
+    return results
+
+def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file):
+    results = []
     
     for bam_file in bam:
         bam_path = os.path.join(bam_folder, bam_file)
@@ -178,7 +190,7 @@ def gene_panel(bam, region, bam_folder, depth_folder, analysis):
         
         for depth_file in depth_files:
             depth_path = os.path.join(depth_folder, depth_file)
-            result = compute_read_depth(bam_path, bed_path, depth_path, region, analysis)
+            result = compute_read_depth(bam_path, assembly_file, depth_path, region, analysis)
             result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': region})
             results.append(result)
     
@@ -208,7 +220,7 @@ def display_results(results, analysis):
 
         df.progress_apply(lambda x: sleep(0.15), axis=1)
         if df['Average_Read_Depth'].isnull().all():
-            st.warning("No results found. Please check the selected files and try again.")
+            st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
         else:
             # Display the DataFrame with column configurations
             st.dataframe(df, column_config=column_configs)
@@ -305,29 +317,31 @@ def example():
             index=None,)
         #VER MELHOR
         if example == "Single Gene > GRCh38/hg38 > PKD1 > 1110366_PKD1.bam":
-            st.session_state.analysis = "Single Gene"
-            st.session_state.assembly = "GRCh38/hg38"
-            st.session_state.region = "PKD1"
-            st.session_state.bam = ["1110366_PKD1.bam"]
+            analysis = "Single Gene"
+            assembly = "GRCh38/hg38"
+            region = "PKD1"
+            bam = ["1110366_PKD1.bam"]
         elif example == "Gene Panel > GRCh38/hg38 > OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição > 1101542.bam":
-            st.session_state.analysis = "Gene Panel"
-            st.session_state.assembly = "GRCh38/hg38"
-            st.session_state.region = ["OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição"]
+            analysis = "Gene Panel"
+            assembly = "GRCh38/hg38"
+            region = ["OncoRisk Expanded (NGS panel for 96 genes)_Wes_transição"]
         elif example == "Exome > GRCh38/hg38 > Exome > 1101542.bam":
-            st.session_state.analysis = "Exome"
-            st.session_state.assembly = "GRCh38/hg38"
-            st.session_state.region = "Exome"
-            st.session_state.bam = ["1101542.bam"]
+            analysis = "Exome"
+            assembly = "GRCh38/hg38"
+            region = "Exome"
+            bam = ["1101542.bam"]
 
 # Function to define Streamlit app
 def app_ARDC():    
-    # Set the title for the main section
+    # TITLE
     st.markdown(
         "# Average read depth and coverage calculator\n#"
     )
 
-        # Create two columns for layout
+    # Create two columns for layout
     col1, col2 = st.columns(2)
+    
+    # STEP 1. Analysis Type
     with col1:
         with st.container(border = True):
             st.markdown(
@@ -342,7 +356,8 @@ def app_ARDC():
             analysis = step1_analysis_type()
 
             bam_folder, depth_folder = working_directory(analysis)
-        
+            
+    # STEP 2. Genome Assembly  
     with col2:
         with st.container(border = True):
             st.markdown(
@@ -354,12 +369,9 @@ def app_ARDC():
                     "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
                 )
             )
-            assembly = step2_genome_assembly()
-
+            assembly_file, gene_lst = step2_genome_assembly()
             
-    
-        # Create two columns for layout
-    col1, col2 = st.columns(2)
+    # STEP 3. Region of Interest
     with col1:
         with st.container(border = True):
             if analysis == "Single Gene":
@@ -396,24 +408,9 @@ def app_ARDC():
                     )
                 )
 
-            region = step3_region_of_interest(analysis, assembly)
-        
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-           
-        
+            region = step3_region_of_interest(analysis, gene_lst)
+            
+    # STEP 4. BAM file
     with col2:
         with st.container(border = True):
             # Column for BAM file selection
@@ -439,11 +436,11 @@ def app_ARDC():
         stqdm.pandas(desc="Calculating Results")
         # Process selected files and display results
         if analysis == "Single Gene":
-            results = single_gene(bam, region, bam_folder, depth_folder, analysis)
+            results = single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file)
         elif analysis == "Gene Panel":
-            results = gene_panel(bam, region, bam_folder, depth_folder, analysis)
+            results = gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file)
         elif analysis == "Exome":
-            results = exome(bam, region, bam_folder, depth_folder, analysis)
+            results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file)
       
         display_results(results, analysis)
         
