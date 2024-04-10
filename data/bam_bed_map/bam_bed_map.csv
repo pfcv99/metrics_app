@@ -22,6 +22,7 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_CALR_MPL.bed,1115849.bam
 ,JAK2_CALR_MPL.bed,1119407.bam
 ,JAK2_CALR_MPL.bed,1120260.bam
+,JAK2_CALR_MPL.bed,1121817_1.bam
 ,PKD2_8bp.bed,1110366_PKD2.bam
 ,PKD1_8bp.bed,1110366_PKD1.bam
 ,PKD2_8bp.bed,1113707_PKD2.bam
@@ -34,9 +35,10 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,PKD1_8bp.bed,1111955_PKD1.bam
 ,PKD2_8bp.bed,1111955_PKD2.bam
 ,PKD1_8bp.bed,1111972_PKD1.bam
-,Painel SMP-SMD 8bp.bed,1112726.bam
-,Painel SMP-SMD 8bp.bed,1112729.bam
-,Painel SMP-SMD 8bp.bed,1112908.bam
+,Painel_SMP-SMD.bed,1112726.bam
+,Painel_SMP-SMD.bed,1112729.bam
+,Painel_SMP-SMD.bed,1112908.bam
+,Painel_SMP-SMD.bed,1120638.bam
 ,KIT_17_8bps.bed,1113436.bam
 ,KIT_17_8bps.bed,1115877.bam
 ,KIT_17_8bps.bed,1116768.bam
