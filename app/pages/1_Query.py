@@ -230,7 +230,7 @@ def display_results(results, analysis):
                 # Display the DataFrame with column configurations
                 st.dataframe(df, column_config=column_configs)
         with tab2:
-            st.write("Overview")
+            st.write("Details")
             
     elif analysis == "Gene Panel":
         st.header("Results - Gene Panel")
