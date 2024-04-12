@@ -227,6 +227,8 @@ def display_results(results, analysis):
             if df['Average_Read_Depth'].isnull().all():
                 st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
             else:
+                st.write(df.to_html(escape=False), unsafe_allow_html=True)
+
                 # Display the DataFrame with column configurations
                 st.dataframe(df, column_config=column_configs)
         with tab2:
