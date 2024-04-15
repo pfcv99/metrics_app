@@ -47,9 +47,20 @@ def step2_genome_assembly():
 
  
 def step3_region_of_interest(analysis, assembly):
-    # IF ANALYSIS TYPE == SINGLE GENE
+    # IF ANALYSIS TYPE IS 'SINGLE GENE'
     if analysis == "Single Gene":
         region = st.selectbox('Select a Gene of Interest', assembly, key="region", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
+        if region is not None:  # Verifica se um gene foi selecionado
+            exon = st.checkbox("All Exons", value=True)
+            if exon:
+                exon_selection = assembly[assembly[3] == region][4].unique()  # Seleciona os exons associados ao gene selecionado
+            else:
+                exon_selection = st.multiselect('Select Exons', assembly[assembly[3] == region][4], key="region", label_visibility="collapsed",placeholder="Select Exons")
+            region = region if exon else assembly[(assembly[3] == region) & (assembly[4].isin(exon_selection))]
+        else:
+            region = None  # Define region como None se nenhum gene for selecionado
+#VER MELHOR AQUI: 
+    # - SELEÇÃO DOS EXÕES, VER NO GENOME_REGIONS.PY
     
     # IF ANALYSIS TYPE == GENE PANEL
     elif analysis == "Gene Panel":
@@ -227,8 +238,6 @@ def display_results(results, analysis):
             if df['Average_Read_Depth'].isnull().all():
                 st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
             else:
-                st.write(df.to_html(escape=False), unsafe_allow_html=True)
-
                 # Display the DataFrame with column configurations
                 st.dataframe(df, column_config=column_configs)
         with tab2:
