@@ -145,14 +145,14 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
             
         }
     elif analysis == "Gene Panel":
-        average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
-        coverage_stats = sd.count_coverage(depth_path)
         global_size, per_gene_size, normalization_factors = sd.normalization_factor(assembly_file, region)
+        average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
+        coverage_stats = sd.count_coverage(depth_path, normalization_factors)
         date_utc = pd.Timestamp.utcnow()
-    
+
         per_gene_size_output = {gene: size for gene, size in per_gene_size.items()}
         normalization_factors_output = {gene: factor for gene, factor in normalization_factors.items()}
-    
+
         return {
             'Date': date_utc,
             'Average_Read_Depth': average_read_depth,

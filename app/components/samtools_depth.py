@@ -66,7 +66,7 @@ def calculate_depth_statistics(depth_path):
 
 
 # Function to count coverage at different levels
-def count_coverage(depth_path):
+def count_coverage(depth_path, normalization_factors_output):
     bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0}
 
     with open(depth_path) as file:
@@ -84,8 +84,11 @@ def count_coverage(depth_path):
                 if depth >= coverage:
                     bases_with_coverage[coverage] += 1
 
-    percentage_with_coverage = {cov: (count / total_bases) * 100.0 for cov, count in bases_with_coverage.items()}
+    # Multiplicar el coverage de cada gen por su respectivo factor de normalización
+    percentage_with_coverage = {cov: (count / total_bases) * 100.0 * 100* normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
+    
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
+
 
 
 def normalization_factor(assembly_file, region):
