@@ -46,17 +46,18 @@ def step2_genome_assembly():
     return assembly_file
 
  
-def step3_region_of_interest(analysis, assembly):
+def step3_region_of_interest(analysis, df_assembly):
     # IF ANALYSIS TYPE IS 'SINGLE GENE'
+    exon_selection = []
     if analysis == "Single Gene":
-        region = st.selectbox('Select a Gene of Interest', assembly, key="region", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
-        if region is not None:  # Verifica se um gene foi selecionado
+        gene = st.selectbox('Select a Gene of Interest', sorted(df_assembly[3].unique().tolist()), key="gene", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
+        if gene:  # Verifica se um gene foi selecionado
+            region = df_assembly[df_assembly[3] == gene][4].unique() # Define a região como o gene selecionado
             exon = st.checkbox("All Exons", value=True)
-            if exon:
-                exon_selection = assembly[assembly[3] == region][4].unique()  # Seleciona os exons associados ao gene selecionado
+            if exon == True:
+                exon_selection = df_assembly[df_assembly[3] == gene][4].tolist()
             else:
-                exon_selection = st.multiselect('Select Exons', assembly[assembly[3] == region][4], key="region", label_visibility="collapsed",placeholder="Select Exons")
-            region = region if exon else assembly[(assembly[3] == region) & (assembly[4].isin(exon_selection))]
+                exon_selection = st.multiselect('Select Exons', df_assembly[df_assembly[3] == gene][4], key="exon", label_visibility="collapsed",placeholder="Select Exons")
         else:
             region = None  # Define region como None se nenhum gene for selecionado
 #VER MELHOR AQUI: 
@@ -89,16 +90,19 @@ def step3_region_of_interest(analysis, assembly):
         region = st.selectbox('Select an Exome', assembly, index=None, key="region", label_visibility="collapsed",placeholder="Select an Exome")
     
     # If no BED file is selected show error
-    if not region:
+    if region is None: 
         if analysis == "Single Gene":
             st.info("No Gene of Interest selected. Please select a Gene of Interest.")
+            if region is not None and ((exon is False) and (not exon_selection)):
+                st.info("No Exon selected. Please select an Exon.")
         elif analysis == "Gene Panel":
             st.info("No Gene Panel selected. Please select a Gene Panel.")
         elif analysis == "Exome":
             st.info("No Exome selected. Please select an Exome.")
+
     
             
-    return region
+    return region, exon_selection
 
 
 
@@ -108,7 +112,7 @@ def step4_bam_file(bam_files, region):
     container = st.container()
     all_bam_files = [Path(f).name for f in bam_files]
     
-    if region:
+    if region is not None:
         all = st.checkbox("Select all ")
     else:
         all = False
@@ -124,25 +128,11 @@ def step4_bam_file(bam_files, region):
 
     return bam
 
-def size_coding(assembly_file, region):
-    size_coding = 0
-
-    with open(assembly_file, 'r') as file:
-        for line in file:
-            fields = line.strip().split('\t')
-            if len(fields) < 7:
-                continue  # Ignorar linhas vazias ou incompletas
-
-            # Supondo que o nome do gene esteja na primeira coluna
-            if fields[3] == region:
-                size_coding += int(fields[6])  # A coluna 7 contém o size_coding
-
-    return size_coding
 
 # Function to calculate average read depth
-def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis):
+def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, exon_selection):
     if analysis == "Single Gene":
-        sd.run_samtools_depth_v2(bam_path, assembly_file, depth_path, region)
+        sd.run_samtools_depth_v2_exon(bam_path, assembly_file, depth_path, region, exon_selection)
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
         coverage_stats = sd.count_coverage(depth_path)
         date_utc = pd.Timestamp.utcnow()
@@ -150,40 +140,44 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis):
         return {
             'Date': date_utc,
             'Average_Read_Depth': average_read_depth,
-            'Size_Coding': size_coding(assembly_file, region),
+            'Size_Coding': sd.normalization_factor(assembly_file, region),
             **coverage_stats,
             
         }
     elif analysis == "Gene Panel":
-        for gene in region:
-            sd.run_samtools_depth_v3(bam_path, assembly_file, depth_path, gene)
-            average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
-            coverage_stats = sd.count_coverage(depth_path)
-            date_utc = pd.Timestamp.utcnow()
-
-            return {
-                'Date': date_utc,
-                'Average_Read_Depth': average_read_depth,
-                'Size_Coding': size_coding(assembly_file, region),
-                'Min_Read_Depth': min_read_depth,
-                'Max_Read_Depth': max_read_depth,
-                **coverage_stats
-            }
+        average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
+        coverage_stats = sd.count_coverage(depth_path)
+        global_size, per_gene_size, normalization_factors = sd.normalization_factor(assembly_file, region)
+        date_utc = pd.Timestamp.utcnow()
+    
+        per_gene_size_output = {gene: size for gene, size in per_gene_size.items()}
+        normalization_factors_output = {gene: factor for gene, factor in normalization_factors.items()}
+    
+        return {
+            'Date': date_utc,
+            'Average_Read_Depth': average_read_depth,
+            'Size_Coding': global_size,
+            'Per_Gene_Size': per_gene_size_output,
+            'Normalization_Factors': normalization_factors_output,
+            'Min_Read_Depth': min_read_depth,
+            'Max_Read_Depth': max_read_depth,
+            **coverage_stats
+        }
             
 
 
-def single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file):
+def single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection):
     results = []
     
     for bam_file in bam:
         bam_path = bam_folder / bam_file
         depth_file = depth_folder / f"{os.path.basename(bam_file)[:-4]}.depth"
-        result = compute_read_depth(bam_path, assembly_file, depth_file, region, analysis)
+        result = compute_read_depth(bam_path, assembly_file, depth_file, region, analysis, exon_selection)
         result.update({'BAM_File': bam_file, 'Region': region})
         results.append(result)
     return results
 
-def gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file):
+def gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection):
     results = []
     
     for bam_file in bam:
@@ -191,13 +185,13 @@ def gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file):
         depth_file = os.path.join(depth_folder, f"{os.path.basename(bam_file)[:-4]}.depth")
         
         for gene in region:
-            result = compute_read_depth(bam_path, assembly_file, depth_file, gene, analysis)
+            result = compute_read_depth(bam_path, assembly_file, depth_file, gene, analysis, exon_selection)
             result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': gene})
             results.append(result)
     
     return results
 
-def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file):
+def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection):
     results = []
     
     for bam_file in bam:
@@ -206,7 +200,7 @@ def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file):
         
         for depth_file in depth_files:
             depth_path = os.path.join(depth_folder, depth_file)
-            result = compute_read_depth(bam_path, assembly_file, depth_path, region, analysis)
+            result = compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, exon_selection)
             result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': region})
             results.append(result)
     
@@ -388,7 +382,7 @@ def app_ARDC():
                     "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
                 )
             )
-            assembly_file, gene_lst = step2_genome_assembly()
+            assembly_file, df_assembly = step2_genome_assembly()
             
     # STEP 3. Region of Interest
     with col1:
@@ -427,7 +421,7 @@ def app_ARDC():
                     )
                 )
 
-            region = step3_region_of_interest(analysis, gene_lst)
+            region, exon_selection = step3_region_of_interest(analysis, df_assembly)
             
     # STEP 4. BAM file
     with col2:
@@ -447,19 +441,19 @@ def app_ARDC():
             bam = step4_bam_file(bam_files, region)
             
     with st.container(border = False):
-        if not region:
+        if region is None:
             example()
         
-    if bam and region:
+    if bam and region is not None:
         #Progress Bar
         stqdm.pandas(desc="Calculating Results")
         # Process selected files and display results
         if analysis == "Single Gene":
-            results = single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file)
+            results = single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
         elif analysis == "Gene Panel":
-            results = gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file)
+            results = gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
         elif analysis == "Exome":
-            results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file)
+            results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
       
         display_results(results, analysis)
         

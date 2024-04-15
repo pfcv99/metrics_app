@@ -1,8 +1,55 @@
 import pandas as pd
 import streamlit as st
 from components import logo
+import subprocess
 
 logo.add_logo()
+
+
+gene_list = ["PKD1", "DICER1", "ATM", "AXIN2"]
+bed_path = 'data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference.bed'
+awk_command = "awk '{if ($4 == \"" + "\" || $4 == \"".join(gene_list) + "\") print}' " + bed_path
+subprocess.run(awk_command, shell=True)
+
+
+
+
+def normalization_factor(assembly_file, region):
+    size_coding_global = 0
+    size_coding_per_gene = {}
+    normalization_factor_per_gene = {}
+
+    with open(assembly_file, 'r') as file:
+        for gene in region:
+            size_coding = 0
+            file.seek(0)  # Reseta o ponteiro do arquivo para o início
+            for line in file:
+                fields = line.strip().split('\t')
+                # Supondo que o nome do gene esteja na primeira coluna
+                if fields[3] == gene:
+                    size_coding += int(fields[6])
+            size_coding_global += size_coding
+            size_coding_per_gene[gene] = size_coding
+
+    for gene, size in size_coding_per_gene.items():
+        normalization_factor_per_gene[gene] = size / size_coding_global
+
+    return size_coding_global, size_coding_per_gene, normalization_factor_per_gene
+
+region = ["DICER1", "ATM", "AXIN2"]
+assembly_file = "data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference.bed"
+global_size, per_gene_size, normalization_factors = normalization_factor(assembly_file, region)
+
+print("Tamanho global de codificação:", global_size)
+print("Tamanho de codificação por gene:")
+for gene, size in per_gene_size.items():
+    print(gene + ":", size)
+
+print("\nFator de normalização por gene:")
+for gene, factor in normalization_factors.items():
+    print(gene + ":", factor)
+
+
 
 # Criar o DataFrame
 data = {
@@ -51,7 +98,7 @@ from pathlib import Path
 def run_samtools_depth_v3(bam_path, bed_path, depth_dir, gene_list):
     for gene_name in gene_list:
         # Comando para executar samtools depth com filtro diretamente no comando awk
-        depth_command = f"awk -v gene={gene_name} '{{if ($4 == gene) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_dir}/{gene_name}.depth"
+        depth_command = f"awk -v gene={gene_name} '{{if ($4 == gene) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_dir}/{gene_name}"
 
         # Executa o comando samtools depth com o filtro aplicado diretamente no comando awk
         subprocess.run(depth_command, shell=True)
@@ -111,3 +158,6 @@ df = pd.read_csv("data/bam_bed_map/bam_bed_map.csv")
 pr = df.profile_report()
 
 st_profile_report(pr)
+
+
+
