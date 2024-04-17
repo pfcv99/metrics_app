@@ -85,7 +85,7 @@ def count_coverage(depth_path, normalization_factors_output):
                     bases_with_coverage[coverage] += 1
 
     # Multiplicar el coverage de cada gen por su respectivo factor de normalización
-    percentage_with_coverage = {cov: (count / total_bases) * 100.0 * 100* normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
+    percentage_with_coverage = {cov: (count / total_bases) * 100.0 / normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
     
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
