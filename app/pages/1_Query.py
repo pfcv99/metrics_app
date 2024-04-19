@@ -51,13 +51,16 @@ def step3_region_of_interest(analysis, df_assembly):
     exon_selection = []
     if analysis == "Single Gene":
         gene = st.selectbox('Select a Gene of Interest', sorted(df_assembly[3].unique().tolist()), key="gene", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
+        print(type(gene))
         if gene:  # Verifica se um gene foi selecionado
             region = df_assembly[df_assembly[3] == gene][4].unique() # Define a região como o gene selecionado
             exon = st.checkbox("All Exons", value=True)
             if exon == True:
                 exon_selection = df_assembly[df_assembly[3] == gene][4].tolist()
+                print(exon_selection)
             else:
                 exon_selection = st.multiselect('Select Exons', df_assembly[df_assembly[3] == gene][4], key="exon", label_visibility="collapsed",placeholder="Select Exons")
+                print(exon_selection)
         else:
             region = None  # Define region como None se nenhum gene for selecionado
 #VER MELHOR AQUI: 

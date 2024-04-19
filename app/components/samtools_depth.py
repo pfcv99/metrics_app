@@ -1,4 +1,5 @@
 import subprocess
+import numpy as np
 
 
 def run_samtools_depth_v0(bam_path, bed_path, depth_path):
@@ -26,7 +27,7 @@ def run_samtools_depth_v2(bam_path, bed_path, depth_path, gene_name):
     subprocess.run(depth_command, shell=True)
     
 def run_samtools_depth_v2_exon(bam_path, bed_path, depth_path, gene_name, exon_selection):
-    exon_filter = exon_selection.split(", ")
+    exon_filter = ','.join(map(str, exon_selection))
     depth_command = f"awk -v gene={gene_name} -v exon='{exon_filter}' '{{if ($4 == gene && ($5 in exon || exon == \"\")) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_path}"
     
     # Executa o comando samtools depth com o filtro aplicado diretamente no comando awk
@@ -92,6 +93,7 @@ def count_coverage(depth_path, normalization_factors_output):
 
 
 def normalization_factor(assembly_file, region):
+    
     size_coding_global = 0
     size_coding_per_gene = {}
     normalization_factor_per_gene = {}
@@ -112,4 +114,39 @@ def normalization_factor(assembly_file, region):
         normalization_factor_per_gene[gene] = size / size_coding_global
 
     return size_coding_global, size_coding_per_gene, normalization_factor_per_gene
+
+
+
+def rpkm(counts, lengths):
+    #https://www.oreilly.com/library/view/elegant-scipy/9781491922927/ch01.html
+    """Calculate reads per kilobase transcript per million reads.
+
+    RPKM = (10^9 * C) / (N * L)
+
+    Where:
+    C = Number of reads mapped to a gene
+    N = Total mapped reads in the experiment
+    L = Exon length in base pairs for a gene
+
+    Parameters
+    ----------
+    counts: array, shape (N_genes, N_samples)
+        RNAseq (or similar) count data where columns are individual samples
+        and rows are genes.
+    lengths: array, shape (N_genes,)
+        Gene lengths in base pairs in the same order
+        as the rows in counts.
+
+    Returns
+    -------
+    normed : array, shape (N_genes, N_samples)
+        The RPKM normalized counts matrix.
+    """
+    N = np.sum(counts, axis=0)  # sum each column to get total reads per sample
+    L = lengths
+    C = counts
+
+    normed = 1e9 * C / (N[np.newaxis, :] * L[:, np.newaxis])
+
+    return(normed)
 
