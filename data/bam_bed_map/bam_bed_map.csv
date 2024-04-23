@@ -24,12 +24,15 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_CALR_MPL.bed,1119407.bam
 ,JAK2_CALR_MPL.bed,1120260.bam
 ,JAK2_CALR_MPL.bed,1121817_1.bam
+,JAK2_CALR_MPL.bed,1123720.bam
 ,PKD2_8bp.bed,1110366_PKD2.bam
 ,PKD1_8bp.bed,1110366_PKD1.bam
 ,PKD2_8bp.bed,1113707_PKD2.bam
 ,PKD1_8bp.bed,1113707_PKD1.bam
 ,PKD1_8bp.bed,1111751_PKD1.bam
 ,PKD1_8bp.bed,1112802_PKD1.bam
+,PKD1_8bp.bed,1120480.bam
+,PKD2_8bp.bed,1120480.bam
 ,PKD1_8bp.bed,1113672_PKD1.bam
 ,PKD2_8bp.bed,1113672_PKD2.bam
 ,PKD2_8bp.bed,1112802_PKD2.bam
@@ -54,17 +57,7 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,MYD88_ex5_8bp.bed,1120607.bam
 ,MYD88_ex5_8bp.bed,1121485.bam
 ,UBA1_8bps.bed,1120090.bam
-,JAK2_12.bed,1123325.bam
-,JAK2_12.bed,1122205.bam
-,JAK2_12.bed,1122124.bam
-,JAK2_12.bed,1121937.bam
-,JAK2_12.bed,1121894.bam
-,JAK2_12.bed,1121885.bam
-,JAK2_12.bed,1122773.bam
-,JAK2_12.bed,1122766.bam
-,JAK2_12.bed,1122712.bam
-,JAK2_12.bed,1122501.bam
-,JAK2_12.bed,1122242.bam
+
 ,TP53_10.bed,1118084B.bam
 ,Painel_SMP-SMD_8bp.bed,1120285.bam
 ,JAK2_CALR_MPL.bed,1116458.bam
@@ -76,17 +69,16 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,TP53.bed,1123989.bam
 ,TP53_8bp.bed,1123989.bam
 ,Painel_GIST.bed,1121917.bam
-,JAK2_12.bed,1122951.bam
-,JAK2_12.bed,1123161.bam
-,JAK2_12.bed,1123153.bam
-,JAK2_12.bed,1123332.bam
-,JAK2_12.bed,1123395.bam
-,JAK2_12.bed,1123702.bam
-,JAK2_12.bed,1123910.bam
-,JAK2_12.bed,1123896.bam
-,JAK2_12.bed,1123800.bam
-,JAK2_12.bed,1124144.bam
-,JAK2_12.bed,1124262.bam
+,JAK2_12.bed,1124703.bam
+,JAK2_12.bed,1124402.bam
+,JAK2_12.bed,1124815.bam
+,JAK2_12.bed,1124768.bam
+,JAK2_12.bed,1124868.bam
+,JAK2_12.bed,1125080.bam
+,JAK2_12.bed,1125093.bam
+,JAK2_12.bed,1125250.bam
+,JAK2_12.bed,1125286.bam
+
 
 
 
