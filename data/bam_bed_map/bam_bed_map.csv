@@ -78,6 +78,9 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_12.bed,1125093.bam
 ,JAK2_12.bed,1125250.bam
 ,JAK2_12.bed,1125286.bam
+,MYD88_ex5_8bp.bed,1124453.bam
+,TP53_8bp.bed,1124269.bam
+
 
 
 
