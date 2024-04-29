@@ -86,7 +86,7 @@ def count_coverage(depth_path, normalization_factors_output):
                     bases_with_coverage[coverage] += 1
 
     # Multiplicar el coverage de cada gen por su respectivo factor de normalización
-    percentage_with_coverage = {cov: (count / total_bases) * 100.0 / normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
+    percentage_with_coverage = {cov: (count / total_bases) * 100.0 * normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
     
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
 
@@ -94,6 +94,7 @@ def count_coverage(depth_path, normalization_factors_output):
 
 def normalization_factor(assembly_file, region):
     
+    max_gene_size = 0
     size_coding_global = 0
     size_coding_per_gene = {}
     normalization_factor_per_gene = {}
@@ -106,14 +107,19 @@ def normalization_factor(assembly_file, region):
                 fields = line.strip().split('\t')
                 # Supondo que o nome do gene esteja na primeira coluna
                 if fields[3] == gene:
-                    size_coding += int(fields[6])
+                    size = int(fields[6])
+                    size_coding += size
+                    if size > max_gene_size:
+                        max_gene_size = size
             size_coding_global += size_coding
             size_coding_per_gene[gene] = size_coding
 
     for gene, size in size_coding_per_gene.items():
-        normalization_factor_per_gene[gene] = size / size_coding_global
+        normalization_factor_per_gene[gene] = size / max_gene_size
 
-    return size_coding_global, size_coding_per_gene, normalization_factor_per_gene
+    return max_gene_size, size_coding_per_gene, normalization_factor_per_gene, size_coding_global
+
+
 
 
 

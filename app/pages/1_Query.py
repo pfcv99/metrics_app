@@ -137,7 +137,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
     if analysis == "Single Gene":
         sd.run_samtools_depth_v2_exon(bam_path, assembly_file, depth_path, region, exon_selection)
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
-        coverage_stats = sd.count_coverage(depth_path)
+        coverage_stats = sd.count_coverage(depth_path, normalization_factors_output)
         date_utc = pd.Timestamp.utcnow()
         
         return {
@@ -148,7 +148,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
             
         }
     elif analysis == "Gene Panel":
-        global_size, per_gene_size, normalization_factors = sd.normalization_factor(assembly_file, region)
+        max_gene_size, per_gene_size, normalization_factors, global_size = sd.normalization_factor(assembly_file, region)
         per_gene_size_output = {gene: size for gene, size in per_gene_size.items()}
         normalization_factors_output = {gene: factor for gene, factor in normalization_factors.items()}
         
