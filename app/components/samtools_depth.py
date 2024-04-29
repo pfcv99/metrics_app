@@ -34,7 +34,8 @@ def run_samtools_depth_v2_exon(bam_path, bed_path, depth_path, gene_name, exon_s
     print("exon selection:", exon_selection)
     exon_filter = ','.join(map(str, exon_selection))
     print("exon filter:", exon_filter)
-    depth_command = f"awk -v gene={gene_name} -v exon='{exon_filter}' '{{if ($4 == gene && ($5 in exon || exon == \"\")) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_path}"
+    depth_command = f"awk -v gene={gene_name} -v exon_filter=\"{exon_filter}\" '{{split(exon_filter, arr, \",\"); if ($4 == gene && (\"\" in arr || $5 == arr[1])) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_path}"
+
     
     # Executa o comando samtools depth com o filtro aplicado diretamente no comando awk
     subprocess.run(depth_command, shell=True)
