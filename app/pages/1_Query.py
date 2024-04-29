@@ -50,17 +50,13 @@ def step3_region_of_interest(analysis, df_assembly):
     # IF ANALYSIS TYPE IS 'SINGLE GENE'
     exon_selection = []
     if analysis == "Single Gene":
-        gene = st.selectbox('Select a Gene of Interest', sorted(df_assembly[3].unique().tolist()), key="gene", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
-        print(type(gene))
-        if gene:  # Verifica se um gene foi selecionado
-            region = df_assembly[df_assembly[3] == gene][4].unique() # Define a região como o gene selecionado
-            exon = st.checkbox("All Exons", value=True)
-            if exon == True:
-                exon_selection = df_assembly[df_assembly[3] == gene][4].tolist()
-                print(exon_selection)
+        region = st.selectbox('Select a Gene of Interest', sorted(df_assembly[3].unique().tolist()), key="gene", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
+        if region:  # Verifica se um gene foi selecionado
+            all_exons = st.checkbox("All Exons", value=True)
+            if all_exons == True:
+                exon_selection = df_assembly[df_assembly[3] == region][4].tolist()
             else:
-                exon_selection = st.multiselect('Select Exons', df_assembly[df_assembly[3] == gene][4], key="exon", label_visibility="collapsed",placeholder="Select Exons")
-                print(exon_selection)
+                exon_selection = st.multiselect('Select Exons', df_assembly[df_assembly[3] == region][4], key="exon", label_visibility="collapsed",placeholder="Select Exons")
         else:
             region = None  # Define region como None se nenhum gene for selecionado
 #VER MELHOR AQUI: 
@@ -137,13 +133,12 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
     if analysis == "Single Gene":
         sd.run_samtools_depth_v2_exon(bam_path, assembly_file, depth_path, region, exon_selection)
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
-        coverage_stats = sd.count_coverage(depth_path, normalization_factors_output)
+        coverage_stats = sd.count_coverage_singlegene(depth_path)
         date_utc = pd.Timestamp.utcnow()
         
         return {
             'Date': date_utc,
             'Average_Read_Depth': average_read_depth,
-            'Size_Coding': sd.normalization_factor(assembly_file, region),
             **coverage_stats,
             
         }
@@ -153,7 +148,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
         normalization_factors_output = {gene: factor for gene, factor in normalization_factors.items()}
         
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
-        coverage_stats = sd.count_coverage(depth_path, normalization_factors_output)
+        coverage_stats = sd.count_coverage_genepanel(depth_path, normalization_factors_output)
         date_utc = pd.Timestamp.utcnow()
 
 

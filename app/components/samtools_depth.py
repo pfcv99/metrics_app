@@ -27,7 +27,13 @@ def run_samtools_depth_v2(bam_path, bed_path, depth_path, gene_name):
     subprocess.run(depth_command, shell=True)
     
 def run_samtools_depth_v2_exon(bam_path, bed_path, depth_path, gene_name, exon_selection):
+    print("depth path:", depth_path)
+    print("bed path:", bed_path)
+    print("bam path:", bam_path)
+    print("gene name:", gene_name)
+    print("exon selection:", exon_selection)
     exon_filter = ','.join(map(str, exon_selection))
+    print("exon filter:", exon_filter)
     depth_command = f"awk -v gene={gene_name} -v exon='{exon_filter}' '{{if ($4 == gene && ($5 in exon || exon == \"\")) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_path}"
     
     # Executa o comando samtools depth com o filtro aplicado diretamente no comando awk
@@ -66,8 +72,32 @@ def calculate_depth_statistics(depth_path):
         return None, None, None
 
 
+
 # Function to count coverage at different levels
-def count_coverage(depth_path, normalization_factors_output):
+def count_coverage_singlegene(depth_path):
+    bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0}
+
+    with open(depth_path) as file:
+        lines = file.readlines()
+        total_bases = len(lines)
+
+        if total_bases == 0:
+            return {f'Coverage_{cov}x(%)': None for cov in bases_with_coverage}
+
+        for line in lines:
+            fields = line.strip().split()
+            depth = float(fields[2])
+
+            for coverage, count in bases_with_coverage.items():
+                if depth >= coverage:
+                    bases_with_coverage[coverage] += 1
+
+    percentage_with_coverage = {cov: (count / total_bases) * 100.0 for cov, count in bases_with_coverage.items()}
+    return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
+
+
+# Function to count coverage at different levels
+def count_coverage_genepanel(depth_path, normalization_factors_output):
     bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0}
 
     with open(depth_path) as file:
@@ -89,7 +119,6 @@ def count_coverage(depth_path, normalization_factors_output):
     percentage_with_coverage = {cov: (count / total_bases) * 100.0 * normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
     
     return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
-
 
 
 def normalization_factor(assembly_file, region):
