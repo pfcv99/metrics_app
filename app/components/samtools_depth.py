@@ -27,13 +27,7 @@ def run_samtools_depth_v2(bam_path, bed_path, depth_path, gene_name):
     subprocess.run(depth_command, shell=True)
     
 def run_samtools_depth_v2_exon(bam_path, bed_path, depth_path, gene_name, exon_selection):
-    print("depth path:", depth_path)
-    print("bed path:", bed_path)
-    print("bam path:", bam_path)
-    print("gene name:", gene_name)
-    print("exon selection:", exon_selection)
     exon_filter = ','.join(map(str, exon_selection))
-    print("exon filter:", exon_filter)
     depth_command = f"awk -v gene={gene_name} -v exon_filter=\"{exon_filter}\" '{{split(exon_filter, arr, \",\"); if ($4 == gene && (\"\" in arr || $5 == arr[1])) {{sub(/^chr/, \"\", $1); print}}}}' {bed_path} | samtools depth -b - {bam_path} > {depth_path}"
 
     
@@ -46,13 +40,31 @@ def run_samtools_depth_v3(bam_path, bed_path, depth_path, gene_list):
     # Construir o comando awk para filtrar o BED com os genes da lista
     gene_list = gene_list.split(", ")
     awk_command = "awk '{if ($4 == \"" + "\" || $4 == \"".join(gene_list) + "\") print}' " + bed_path
+    # Combinar o comando awk com o comando samtools depth e redirecionar a saída para o arquivo de profundidade
+    depth_command = f"{awk_command} | samtools depth -b - {bam_path} > {depth_path}"
+    
+    # Executar o comando combinado
+    subprocess.run(depth_command, shell=True)
+    
+def run_samtools_depth_v4(bam_path, bed_path, depth_path, gene_list):
+    # Construir o comando awk para filtrar o BED com os genes da lista
+    gene_list = gene_list.split(", ")
+    awk_command = (
+        'awk \'BEGIN { genes="' +
+        ' '.join(gene_list) +
+        '" } ' +
+        '{split(genes, genes_array, " "); ' +
+        'for (i in genes_array) { ' +
+        'if ($4 == genes_array[i]) {print; next}}}' +
+        '\' ' +
+        bed_path
+    )
     
     # Combinar o comando awk com o comando samtools depth e redirecionar a saída para o arquivo de profundidade
     depth_command = f"{awk_command} | samtools depth -b - {bam_path} > {depth_path}"
     
     # Executar o comando combinado
     subprocess.run(depth_command, shell=True)
-
 
 
 # Function to calculate average depth, min, and max

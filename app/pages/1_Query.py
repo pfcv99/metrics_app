@@ -30,7 +30,7 @@ def step1_analysis_type():
                 )
     return analysis_type
 
-def step2_genome_assembly():
+def step2_genome_assembly(analysis):
     assembly = st.radio(
                 "Select an option",
                 ["GRCh37/hg19", "GRCh38/hg38"],
@@ -39,10 +39,11 @@ def step2_genome_assembly():
                 disabled=False,
                 horizontal=True, index=1
                 )
-    if assembly == "GRCh38/hg38":
-        assembly_file = genome_regions.mane()
-    elif assembly == "GRCh37/hg19":
-        assembly_file = genome_regions.ucsc() 
+    #if assembly == "GRCh38/hg38":
+    #    assembly_file = genome_regions.mane(analysis)
+    #elif assembly == "GRCh37/hg19":
+    #    assembly_file = genome_regions.ucsc(analysis) 
+    assembly_file = genome_regions.genome_assembly(assembly, analysis)
     return assembly_file
 
  
@@ -58,10 +59,8 @@ def step3_region_of_interest(analysis, df_assembly):
             else:
                 exon_selection = st.multiselect('Select Exons', df_assembly[df_assembly[3] == region][4], key="exon", label_visibility="collapsed",placeholder="Select Exons")
         else:
-            region = None  # Define region como None se nenhum gene for selecionado
-#VER MELHOR AQUI: 
-    # - SELEÇÃO DOS EXÕES, VER NO GENOME_REGIONS.PY
-    
+            region = None 
+
     # IF ANALYSIS TYPE == GENE PANEL
     elif analysis == "Gene Panel":
         data = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=',', header=0)
@@ -86,13 +85,13 @@ def step3_region_of_interest(analysis, df_assembly):
         
     # IF ANALYSIS TYPE == EXOME          
     elif analysis == "Exome":
-        region = st.selectbox('Select an Exome', assembly, index=None, key="region", label_visibility="collapsed",placeholder="Select an Exome")
+        region = st.selectbox('Select an Exome', sorted(df_assembly[3].unique().tolist()), index=None, key="region", label_visibility="collapsed",placeholder="Select an Exome")
     
     # If no BED file is selected show error
-    if region is None: 
+    if region==None: 
         if analysis == "Single Gene":
             st.info("No Gene of Interest selected. Please select a Gene of Interest.")
-            if region is not None and ((exon is False) and (not exon_selection)):
+            if region is not None and ((all_exons is False) and (not exon_selection)):
                 st.info("No Exon selected. Please select an Exon.")
         elif analysis == "Gene Panel":
             st.info("No Gene Panel selected. Please select a Gene Panel.")
@@ -143,6 +142,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
             
         }
     elif analysis == "Gene Panel":
+        sd.run_samtools_depth_v4(bam_path, assembly_file, depth_path, region)
         max_gene_size, per_gene_size, normalization_factors, global_size = sd.normalization_factor(assembly_file, region)
         per_gene_size_output = {gene: size for gene, size in per_gene_size.items()}
         normalization_factors_output = {gene: factor for gene, factor in normalization_factors.items()}
@@ -187,7 +187,6 @@ def gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, e
             result = compute_read_depth(bam_path, assembly_file, depth_file, gene, analysis, exon_selection)
             result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': gene})
             results.append(result)
-    
     return results
 
 def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection):
@@ -381,7 +380,7 @@ def app_ARDC():
                     "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
                 )
             )
-            assembly_file, df_assembly = step2_genome_assembly()
+            assembly_file, df_assembly = step2_genome_assembly(analysis)
             
     # STEP 3. Region of Interest
     with col1:
