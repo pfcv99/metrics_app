@@ -80,6 +80,14 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_12.bed,1125286.bam
 ,MYD88_ex5_8bp.bed,1124453.bam
 ,TP53_8bp.bed,1124269.bam
+,CSF3R_13_14_15_16_17_8bp.bed,1124788.bam
+,BRAF_15.bed,1124798.bam
+,BRAF_15.bed,1124730.bam
+,TP53.bed,1126010.bam
+,TP53_8bp.bed,1126010.bam
+,UBA1.bed,1125239.bam
+,Painel_SMP-SMD.bed,1124509.bam
+
 
 
 
