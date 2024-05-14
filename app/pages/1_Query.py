@@ -205,7 +205,7 @@ def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_s
     return results
     
 # Function to display results in a DataFrame
-def display_results(results, analysis):
+def display_results(results, analysis, assembly):
     if analysis == "Single Gene":
         st.header("Results - Single Gene")
         tab1, tab2 = st.tabs(["Overview", "Details"])
@@ -237,31 +237,40 @@ def display_results(results, analysis):
             
     elif analysis == "Gene Panel":
         st.header("Results - Gene Panel")
-
+        tab1, tab2 = st.tabs(["Overview", "Details"])
+        with tab1:
         
-        df = pd.DataFrame(results)
-        df.set_index('Date', inplace=True)
-        # Replace the line that sets ordered_columns with the following
-        ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
+            df = pd.DataFrame(results)
+            df.set_index('Date', inplace=True)
+            # Replace the line that sets ordered_columns with the following
+            ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
 
-        df = df[ordered_columns]
+            df = df[ordered_columns]
 
-        column_configs = {}
-        for column in df.columns[df.columns.str.startswith('Coverage')]:
-            column_configs[column] = st.column_config.ProgressColumn(
-                help="Coverage percentage",
-                format="%.2f",
-                min_value=0,
-                max_value=100
-            )
+            column_configs = {}
+            for column in df.columns[df.columns.str.startswith('Coverage')]:
+                column_configs[column] = st.column_config.ProgressColumn(
+                    help="Coverage percentage",
+                    format="%.2f",
+                    min_value=0,
+                    max_value=100
+                )
 
-        df.progress_apply(lambda x: sleep(0.15), axis=1)
+            df.progress_apply(lambda x: sleep(0.15), axis=1)
 
-        if df['Average_Read_Depth'].isnull().all():
-            st.warning("No results found. Please check the selected files and try again.")
-        else:
-            # Display the DataFrame with column configurations
-            st.dataframe(df, column_config=column_configs)
+            if df['Average_Read_Depth'].isnull().all():
+                st.warning("No results found. Please check the selected files and try again.")
+            else:
+                st.markdown(f'''
+                            **Genome build** {assembly} \n
+                            **Region** {df['Region'].unique()[0]} \n
+                            **BAM File** {df['BAM_File'].unique()[0]}
+                            ''')
+                # Display the DataFrame with column configurations
+                st.dataframe(df, column_config=column_configs)
+                
+        with tab2:
+            st.write("Details")
             
     elif analysis == "Exome":
         st.header("Results - Exome")
@@ -453,7 +462,7 @@ def app_ARDC():
         elif analysis == "Exome":
             results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
       
-        display_results(results, analysis)
+        display_results(results, analysis, assembly_file)
         
         
 
