@@ -1,4 +1,5 @@
 import pandas as pd
+import streamlit as st
 
 #def mane(analysis):
 #    path_mane = 'data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference.bed'
@@ -23,7 +24,7 @@ import pandas as pd
 #    data_ucsc = pd.read_csv(path, sep='\t', header=None)
 #    df_ucsc = pd.DataFrame(data_ucsc)
 #    return path, df_ucsc
-
+@st.cache_data
 def genome_assembly(assembly, analysis):
     paths = {
         "GRCh38/hg38": {

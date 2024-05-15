@@ -1,5 +1,6 @@
 import streamlit as st
 
+@st.cache_data
 def add_logo():
     st.markdown(
         """

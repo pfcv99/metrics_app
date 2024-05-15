@@ -111,27 +111,46 @@ def count_coverage_singlegene(depth_path):
 
 # Function to count coverage at different levels
 def count_coverage_genepanel(depth_path, normalization_factors_output):
-    bases_with_coverage = {500: 0, 100: 0, 50: 0, 30: 0, 20: 0, 15: 0, 10: 0, 1: 0}
+    bases_with_coverage = {500: {}, 100: {}, 50: {}, 30: {}, 20: {}, 15: {}, 10: {}, 1: {}}
+
+    # Inicializar contadores para cada gene
+    for cov_threshold in bases_with_coverage:
+        for gene in normalization_factors_output:
+            bases_with_coverage[cov_threshold][gene] = 0
 
     with open(depth_path) as file:
         lines = file.readlines()
         total_bases = len(lines)
 
         if total_bases == 0:
-            return {f'Coverage_{cov}x(%)': None for cov in bases_with_coverage}
+            return {f'Coverage_{cov}x(%)': {gene: None for gene in normalization_factors_output} for cov in bases_with_coverage}
 
         for line in lines:
             fields = line.strip().split()
             depth = float(fields[2])
 
-            for coverage, count in bases_with_coverage.items():
-                if depth >= coverage:
-                    bases_with_coverage[coverage] += 1
+            for coverage, gene_counts in bases_with_coverage.items():
+                for gene, factor in normalization_factors_output.items():
+                    if depth >= coverage:
+                        gene_counts[gene] += 1
 
-    # Multiplicar el coverage de cada gen por su respectivo factor de normalización
-    percentage_with_coverage = {cov: (count / total_bases) * 100.0 * normalization_factors_output[gene] for cov, count in bases_with_coverage.items() for gene in normalization_factors_output}
-    
-    return {f'Coverage_{cov}x(%)': percentage for cov, percentage in percentage_with_coverage.items()}
+    coverage_results = {}
+
+    # Calcular cobertura percentual para cada gene em cada limiar de cobertura
+    for cov_threshold, gene_counts in bases_with_coverage.items():
+        coverage_results[f'Coverage_{cov_threshold}x(%)'] = {}
+        for gene, count in gene_counts.items():
+            coverage_results[f'Coverage_{cov_threshold}x(%)'][gene] = (count / total_bases) * 100.0 * normalization_factors_output[gene]
+
+    # Calcular cobertura total para cada gene com fator de normalização
+    total_coverage = {}
+    for gene, factor in normalization_factors_output.items():
+        total_coverage[gene] = sum(gene_counts[gene] for gene_counts in bases_with_coverage.values()) * factor
+
+    coverage_results['Total_Coverage(%)'] = total_coverage
+
+    return coverage_results
+
 
 
 def normalization_factor(assembly_file, region):
@@ -161,6 +180,23 @@ def normalization_factor(assembly_file, region):
 
     return max_gene_size, size_coding_per_gene, normalization_factor_per_gene, size_coding_global
 
+
+def get_size_coding_per_gene(assembly_file, region):
+    size_coding_per_gene = {}
+    region = region.split(", ")
+    with open(assembly_file, 'r') as file:
+        for gene in region:
+            size_coding = 0
+            file.seek(0)  # Reseta o ponteiro do arquivo para o início
+            for line in file:
+                fields = line.strip().split('\t')
+                # Supondo que o nome do gene esteja na primeira coluna
+                if fields[3] == gene:
+                    size = int(fields[6])
+                    size_coding += size
+            size_coding_per_gene[gene] = size_coding
+
+    return size_coding_per_gene
 
 
 

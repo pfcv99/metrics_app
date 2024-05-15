@@ -13,13 +13,19 @@ from components import genome_regions
 from components import gene_panel_creator as pc
 from time import sleep
 from stqdm import stqdm
+from threading import RLock
+stqdm.set_lock(RLock())
+
 
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
 
 logo.add_logo()
 
+
+@st.cache_data(experimental_allow_widgets=True)
 def step1_analysis_type():
+    
     analysis_type = st.radio(
                 "Select an option",
                 ["Single Gene", "Gene Panel", "Exome"],
@@ -30,6 +36,7 @@ def step1_analysis_type():
                 )
     return analysis_type
 
+@st.cache_data(experimental_allow_widgets=True)
 def step2_genome_assembly(analysis):
     assembly = st.radio(
                 "Select an option",
@@ -43,10 +50,10 @@ def step2_genome_assembly(analysis):
     #    assembly_file = genome_regions.mane(analysis)
     #elif assembly == "GRCh37/hg19":
     #    assembly_file = genome_regions.ucsc(analysis) 
-    assembly_file = genome_regions.genome_assembly(assembly, analysis)
-    return assembly_file
+    assembly_file, df_assembly = genome_regions.genome_assembly(assembly, analysis)
+    return assembly_file, df_assembly, assembly
 
- 
+@st.cache_data(experimental_allow_widgets=True)
 def step3_region_of_interest(analysis, df_assembly):
     # IF ANALYSIS TYPE IS 'SINGLE GENE'
     exon_selection = []
@@ -103,7 +110,7 @@ def step3_region_of_interest(analysis, df_assembly):
     return region, exon_selection
 
 
-
+@st.cache_data(experimental_allow_widgets=True)
 # Function to select BAM files based on the selected BED
 def step4_bam_file(bam_files, region):
     # Allow the user to select BAM files in a multi-selection dropdown
@@ -128,6 +135,7 @@ def step4_bam_file(bam_files, region):
 
 
 # Function to calculate average read depth
+@st.cache_resource
 def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, exon_selection):
     if analysis == "Single Gene":
         sd.run_samtools_depth_v2_exon(bam_path, assembly_file, depth_path, region, exon_selection)
@@ -150,6 +158,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
         average_read_depth, min_read_depth, max_read_depth = sd.calculate_depth_statistics(depth_path)
         coverage_stats = sd.count_coverage_genepanel(depth_path, normalization_factors_output)
         date_utc = pd.Timestamp.utcnow()
+        
 
 
         return {
@@ -161,7 +170,7 @@ def compute_read_depth(bam_path, assembly_file, depth_path, region, analysis, ex
             'Min_Read_Depth': min_read_depth,
             'Max_Read_Depth': max_read_depth,
             **coverage_stats
-        }
+        }, per_gene_size_output
             
 
 
@@ -184,10 +193,10 @@ def gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, e
         depth_file = os.path.join(depth_folder, f"{os.path.basename(bam_file)[:-4]}.depth")
         
         for gene in region:
-            result = compute_read_depth(bam_path, assembly_file, depth_file, gene, analysis, exon_selection)
+            result, per_gene_size_output = compute_read_depth(bam_path, assembly_file, depth_file, gene, analysis, exon_selection)
             result.update({'BAM_File': bam_file, 'Depth_File': depth_file, 'Region': gene})
             results.append(result)
-    return results
+    return results, per_gene_size_output
 
 def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection):
     results = []
@@ -205,10 +214,12 @@ def exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_s
     return results
     
 # Function to display results in a DataFrame
-def display_results(results, analysis, assembly):
+@st.cache_data
+def display_results_old(results, analysis, assembly):
     if analysis == "Single Gene":
+        st.divider()
         st.header("Results - Single Gene")
-        tab1, tab2 = st.tabs(["Overview", "Details"])
+        tab1, tab2 = st.tabs(["Overview", "Exon Details"])
         with tab1:
             df = pd.DataFrame(results)
             df.set_index('Date', inplace=True)
@@ -230,14 +241,20 @@ def display_results(results, analysis, assembly):
             if df['Average_Read_Depth'].isnull().all():
                 st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
             else:
+                st.markdown(f'''
+                            **Genome build** {assembly} \n
+                            **Region** {df['Region'].unique()[0]} \n
+                            **BAM File** {df['BAM_File'].unique()[0]}
+                            ''')
                 # Display the DataFrame with column configurations
-                st.dataframe(df, column_config=column_configs)
+                st.dataframe(df.drop(columns=['Region', 'BAM_File']), column_config=column_configs)
         with tab2:
             st.write("Details")
             
     elif analysis == "Gene Panel":
+        st.divider()
         st.header("Results - Gene Panel")
-        tab1, tab2 = st.tabs(["Overview", "Details"])
+        tab1, tab2, tab3 = st.tabs(["Overview", "Gene Details", "Exon Details"])
         with tab1:
         
             df = pd.DataFrame(results)
@@ -267,12 +284,17 @@ def display_results(results, analysis, assembly):
                             **BAM File** {df['BAM_File'].unique()[0]}
                             ''')
                 # Display the DataFrame with column configurations
-                st.dataframe(df, column_config=column_configs)
+                st.dataframe(df.drop(columns=['Region', 'BAM_File']), column_config=column_configs)
                 
         with tab2:
             st.write("Details")
             
+        
+        with tab3:
+            st.write("Details")
+            
     elif analysis == "Exome":
+        st.divider()
         st.header("Results - Exome")
 
 
@@ -301,6 +323,116 @@ def display_results(results, analysis, assembly):
             # Display the DataFrame with column configurations
             st.dataframe(df, column_config=column_configs)
 
+@st.cache_data
+def display_results(results, analysis, assembly, per_gene_size_output):
+    if analysis == "Single Gene":
+        st.divider()
+        st.header("Results - Single Gene")
+        tab1, tab2 = st.tabs(["Overview", "Exon Details"])
+        with tab1:
+            df = pd.DataFrame(results)
+            df.set_index('Date', inplace=True)
+            # Replace the line that sets ordered_columns with the following
+            ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
+
+            df = df[ordered_columns]
+
+            column_configs = {}
+            for column in df.columns[df.columns.str.startswith('Coverage')]:
+                column_configs[column] = st.column_config.ProgressColumn(
+                    help="Coverage percentage",
+                    format="%.2f",
+                    min_value=0,
+                    max_value=100
+                )
+
+            df.progress_apply(lambda x: sleep(0.15), axis=1)
+            if df['Average_Read_Depth'].isnull().all():
+                st.warning("No results found. Please check Genome Assembly or the selected BAM File(s) and try again.")
+            else:
+                st.markdown(f'''
+                            **Genome build** {assembly} \n
+                            **Region** {df['Region'].unique()[0]} \n
+                            **BAM File** {df['BAM_File'].unique()[0]}
+                            ''')
+                # Display the DataFrame with column configurations
+                st.dataframe(df.drop(columns=['Region', 'BAM_File']), column_config=column_configs)
+        with tab2:
+            st.write("Details")
+            
+            
+    elif analysis == "Gene Panel":
+        st.divider()
+        st.header("Results - Gene Panel")
+        tab1, tab2, tab3 = st.tabs(["Overview", "Gene Details", "Exon Details"])
+        with tab1:
+        
+            df = pd.DataFrame(results)
+            df.set_index('Date', inplace=True)
+            # Replace the line that sets ordered_columns with the following
+            ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
+
+            df = df[ordered_columns]
+
+            column_configs = {}
+            for column in df.columns[df.columns.str.startswith('Coverage')]:
+                column_configs[column] = st.column_config.ProgressColumn(
+                    help="Coverage percentage",
+                    format="%.2f",
+                    min_value=0,
+                    max_value=100
+                )
+
+            df.progress_apply(lambda x: sleep(0.15), axis=1)
+
+            if df['Average_Read_Depth'].isnull().all():
+                st.warning("No results found. Please check the selected files and try again.")
+            else:
+                st.markdown(f'''
+                            **Genome build** {assembly} \n
+                            **Region** {df['Region'].unique()[0]} \n
+                            **BAM File** {df['BAM_File'].unique()[0]}
+                            ''')
+                # Display the DataFrame with column configurations
+                st.dataframe(df.drop(columns=['Region', 'BAM_File']), column_config=column_configs)
+                
+        with tab2:
+            st.write("Details")
+            df2 = pd.DataFrame.from_dict(per_gene_size_output)
+            st.dataframe(df2)
+            
+        with tab3:
+            st.write("Details")
+            
+    elif analysis == "Exome":
+        st.divider()
+        st.header("Results - Exome")
+
+
+
+        df = pd.DataFrame(results)
+        df.set_index('Date', inplace=True)
+        # Replace the line that sets ordered_columns with the following
+        ordered_columns = ['Region','BAM_File'] + [col for col in df.columns if col not in ['BAM_File', 'Region']]
+
+        df = df[ordered_columns]
+
+        column_configs = {}
+        for column in df.columns[df.columns.str.startswith('Coverage')]:
+            column_configs[column] = st.column_config.ProgressColumn(
+                help="Coverage percentage",
+                format="%.2f",
+                min_value=0,
+                max_value=100
+            )
+
+        df.progress_apply(lambda x: sleep(0.15), axis=1)
+
+        if df['Average_Read_Depth'].isnull().all():
+            st.warning("No results found. Please check the selected files and try again.")
+        else:
+            # Display the DataFrame with column configurations
+            st.dataframe(df, column_config=column_configs)
 
 def working_directory(analysis):
     while True:
@@ -389,7 +521,7 @@ def app_ARDC():
                     "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
                 )
             )
-            assembly_file, df_assembly = step2_genome_assembly(analysis)
+            assembly_file, df_assembly, assembly = step2_genome_assembly(analysis)
             
     # STEP 3. Region of Interest
     with col1:
@@ -458,11 +590,11 @@ def app_ARDC():
         if analysis == "Single Gene":
             results = single_gene(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
         elif analysis == "Gene Panel":
-            results = gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
+            results, per_gene_size_output = gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
         elif analysis == "Exome":
             results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
       
-        display_results(results, analysis, assembly_file)
+        display_results(results, analysis, assembly, per_gene_size_output)
         
         
 
