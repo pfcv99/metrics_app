@@ -398,9 +398,7 @@ def display_results(results, analysis, assembly, per_gene_size_output):
                 
         with tab2:
             st.write("Details")
-            df2 = pd.DataFrame.from_dict(per_gene_size_output)
-            st.dataframe(df2)
-            
+
         with tab3:
             st.write("Details")
             
