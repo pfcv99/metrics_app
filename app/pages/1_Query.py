@@ -324,7 +324,7 @@ def display_results_old(results, analysis, assembly):
             st.dataframe(df, column_config=column_configs)
 
 @st.cache_data
-def display_results(results, analysis, assembly, per_gene_size_output):
+def display_results(results, analysis, assembly):
     if analysis == "Single Gene":
         st.divider()
         st.header("Results - Single Gene")
@@ -592,7 +592,7 @@ def app_ARDC():
         elif analysis == "Exome":
             results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
       
-        display_results(results, analysis, assembly, per_gene_size_output)
+        display_results(results, analysis, assembly)
         
         
 
