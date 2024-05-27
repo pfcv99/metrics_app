@@ -43,3 +43,10 @@ def genome_assembly(assembly, analysis):
         raise ValueError("Invalid assembly or analysis type")
     
   
+def panel():
+    paths = {
+        "Gene Panel" : 'data/regions/gene_panels/BED_Files_Emedgene_2.csv'
+        }
+    path = paths.get("Gene Panel")
+    if path:
+        return pd.read_csv(path, sep=',', header=None)
