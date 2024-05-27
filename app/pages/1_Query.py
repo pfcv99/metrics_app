@@ -20,7 +20,9 @@ stqdm.set_lock(RLock())
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
 
-logo.add_logo()
+sidebar_logo = "data/img/unilabs_logo.svg"
+main_body_logo = "data/img/thumbnail_image001.png"
+st.logo(sidebar_logo, icon_image=main_body_logo)
 
 
 @st.cache_data(experimental_allow_widgets=True)

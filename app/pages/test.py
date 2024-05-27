@@ -1,9 +1,11 @@
-import pandas as pd
-import streamlit as st
-from components import logo
-import subprocess
-
-logo.add_logo()
+#import pandas as pd
+#import streamlit as st
+#from components import logo
+#import subprocess
+#
+#sidebar_logo = "data/img/unilabs_logo.svg"
+#main_body_logo = "data/img/thumbnail_image001.png"
+#st.logo(sidebar_logo, icon_image=main_body_logo)
 
 
 #gene_list = ["PKD1", "DICER1", "ATM", "AXIN2"]
@@ -92,8 +94,8 @@ logo.add_logo()
 
 
 
-import subprocess
-from pathlib import Path
+#import subprocess
+#from pathlib import Path
 
 #def run_samtools_depth_v3(bam_path, bed_path, depth_dir, gene_list):
 #    for gene_name in gene_list:
@@ -249,24 +251,24 @@ from pathlib import Path
     
 
 
-import plotly.graph_objects as go
-
-fig = go.Figure(go.Indicator(
-    mode = "gauge+number",
-    value = 50,
-    domain = {'x': [0, 1], 'y': [0, 1]},
-    title = {'text': "100x", 'font': {'size': 24}},
-    gauge = {
-        'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "black"},
-        'bar': {'color': "darkgrey"},
-        'bgcolor': "white",
-        'borderwidth': 2,
-        'bordercolor': "gray",
-        'steps': [
-            {'range': [0, 94], 'color': 'red'},
-            {'range': [94, 98], 'color': 'yellow'},
-            {'range': [98, 100], 'color': 'green'}]}))
-
-fig.update_layout(font = {'color': "darkgrey", 'family': "Arial"})
-
-st.plotly_chart(fig, theme=None)
+#import plotly.graph_objects as go
+#
+#fig = go.Figure(go.Indicator(
+#    mode = "gauge+number",
+#    value = 50,
+#    domain = {'x': [0, 1], 'y': [0, 1]},
+#    title = {'text': "100x", 'font': {'size': 24}},
+#    gauge = {
+#        'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "black"},
+#        'bar': {'color': "darkgrey"},
+#        'bgcolor': "white",
+#        'borderwidth': 2,
+#        'bordercolor': "gray",
+#        'steps': [
+#            {'range': [0, 94], 'color': 'red'},
+#            {'range': [94, 98], 'color': 'yellow'},
+#            {'range': [98, 100], 'color': 'green'}]}))
+#
+#fig.update_layout(font = {'color': "darkgrey", 'family': "Arial"})
+#
+#st.plotly_chart(fig, theme=None)
