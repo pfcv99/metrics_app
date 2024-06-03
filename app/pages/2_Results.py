@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 
+sidebar_logo = "data/img/unilabs_logo.png"
+main_body_logo = "data/img/thumbnail_image001.png"
+st.logo(sidebar_logo, icon_image=main_body_logo)
+
 tab1, tab2, tab3 = st.tabs(["Submmited", "Pending", "Terminated/Canceled"])
 
 with tab1:
