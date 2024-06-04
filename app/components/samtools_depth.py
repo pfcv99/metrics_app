@@ -243,3 +243,6 @@ def rpkm(counts, lengths):
 
     return(normed)
 
+from components import metrics
+
+print(metrics.coverage('data/depth/1101542.depth', genes=None, exons=None))

@@ -1,11 +1,13 @@
 import streamlit as st
 import pandas as pd
+from components import dataframe, metrics
 
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
 st.logo(sidebar_logo, icon_image=main_body_logo)
 
-tab1, tab2, tab3 = st.tabs(["Submmited", "Pending", "Terminated/Canceled"])
+st.title("Results")
+tab1, tab2, tab3 = st.tabs(["Overview", "Gene Detail", "Exon Detail"])
 
 with tab1:
     df = pd.DataFrame(
@@ -35,3 +37,12 @@ with tab1:
 
     favorite_command = edited_df.loc[edited_df["rating"].idxmax()]["command"]
     st.markdown(f"Your favorite command is **{favorite_command}** 🎈")
+
+with tab2:
+    st.write("Gene Detail")
+    
+    df = dataframe.dataframe(dicionario1, dicionario2, dicionario3)
+    st.dataframe(df)
+    
+with tab3:
+    st.write("Exon Detail")
