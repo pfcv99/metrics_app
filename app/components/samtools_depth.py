@@ -180,6 +180,29 @@ def normalization_factor(assembly_file, region):
 
     return max_gene_size, size_coding_per_gene, normalization_factor_per_gene, size_coding_global
 
+def size_gene(assembly_file, region):
+    
+    max_gene_size = 0
+    size_coding_per_gene = {}
+    region = region.split(", ")
+    with open(assembly_file, 'r') as file:
+        for gene in region:
+            size_coding = 0
+            file.seek(0)  # Reseta o ponteiro do arquivo para o início
+            for line in file:
+                fields = line.strip().split('\t')
+                # Supondo que o nome do gene esteja na primeira coluna
+                if fields[3] == gene:
+                    size = int(fields[6])
+                    size_coding += size
+                    if size > max_gene_size:
+                        max_gene_size = size
+            size_coding_per_gene[gene] = size_coding
+
+    per_gene_size_output = {gene: size for gene, size in size_coding_per_gene.items()}
+    
+    return per_gene_size_output
+
 
 def get_size_coding_per_gene(assembly_file, region):
     size_coding_per_gene = {}
@@ -198,6 +221,7 @@ def get_size_coding_per_gene(assembly_file, region):
 
     return size_coding_per_gene
 
+print(get_size_coding_per_gene("data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference_chr.bed", "PKD1,BRCA1"))
 
 
 

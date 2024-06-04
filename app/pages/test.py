@@ -1,3 +1,5 @@
+import pandas as pd
+
 #import pandas as pd
 #import streamlit as st
 #from components import logo
@@ -272,3 +274,31 @@
 #fig.update_layout(font = {'color': "darkgrey", 'family': "Arial"})
 #
 #st.plotly_chart(fig, theme=None)
+
+def size_gene(assembly_file, region):
+    
+    max_gene_size = 0
+    size_coding_per_gene = {}
+    region = region.split(", ")
+    with open(assembly_file, 'r') as file:
+        for gene in region:
+            size_coding = 0
+            file.seek(0)  # Reseta o ponteiro do arquivo para o início
+            for line in file:
+                fields = line.strip().split('\t')
+                # Supondo que o nome do gene esteja na primeira coluna
+                if fields[3] == gene:
+                    size = int(fields[6])
+                    size_coding += size
+                    if size > max_gene_size:
+                        max_gene_size = size
+            size_coding_per_gene[gene] = size_coding
+
+    per_gene_size_output = {gene: size for gene, size in size_coding_per_gene.items()}
+    
+    return per_gene_size_output
+
+gene_sizes = size_gene("data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference_chr.bed", "PKD1, DICER1, ATM, AXIN2")
+
+df = pd.DataFrame(gene_sizes.items(), columns=['Gene', 'Size'])
+print(df)
