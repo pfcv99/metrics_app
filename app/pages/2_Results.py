@@ -41,7 +41,7 @@ with tab1:
 with tab2:
     st.write("Gene Detail")
     
-    df = dataframe.dataframe(dicionario1, dicionario2, dicionario3)
+    df = dataframe.dataframe()
     st.dataframe(df)
     
 with tab3:

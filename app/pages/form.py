@@ -1,5 +1,9 @@
 import streamlit as st
 from components import genome_regions
+from components import streamlit_page_config
+
+# Set Streamlit page configuration
+streamlit_page_config.set_page_configuration()
 
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"

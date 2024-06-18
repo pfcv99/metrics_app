@@ -2,7 +2,7 @@ import subprocess
 
 def depth(bam_path, bed_path, depth_path, gene_selection=None, exon_selection=None):
     """
-    Calculate the depth of coverage for specific genes and exons in a BAM file using samtools.
+    Calculate the depth of coverage for specific exons of genes in a BAM file using samtools.
 
     Args:
         bam_path (str): Path to the BAM file.
