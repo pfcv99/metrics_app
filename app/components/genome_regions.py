@@ -27,12 +27,12 @@ import pandas as pd
 def genome_assembly(assembly, analysis):
     paths = {
         "GRCh38/hg38": {
-            "Single Gene": 'data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference.bed',
-            "Gene Panel": 'data/regions/genome_exons/MANE_hg38_exons_modif_MANE_with_difference_chr.bed'
+            "Single Gene": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.bed',
+            "Gene Panel": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.bed'
         },
         "GRCh37/hg19": {
-            "Single Gene": 'data/regions/genome_exons/UCSC_hg19_exons_modif_canonical_with_difference.bed',
-            "Gene Panel": 'data/regions/genome_exons/UCSC_hg19_exons_modif_canonical_with_difference_chr.bed'
+            "Single Gene": 'data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.BED',
+            "Gene Panel": 'data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.BED'
         }
     }
 

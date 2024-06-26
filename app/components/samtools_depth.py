@@ -177,7 +177,7 @@ def normalization_factor(assembly_file, region):
                 fields = line.strip().split('\t')
                 # Supondo que o nome do gene esteja na primeira coluna
                 if fields[3] == gene:
-                    size = int(fields[6])
+                    size = int(fields[5])
                     size_coding += size
                     if size > max_gene_size:
                         max_gene_size = size
@@ -245,4 +245,4 @@ def rpkm(counts, lengths):
 
 from components import metrics
 
-print(metrics.coverage('data/depth/1101542.depth', genes=None, exons=None))
+#print(metrics.coverage('data/depth/1101542.depth', genes=None, exons=None))

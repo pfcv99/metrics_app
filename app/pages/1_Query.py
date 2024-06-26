@@ -25,7 +25,7 @@ main_body_logo = "data/img/thumbnail_image001.png"
 st.logo(sidebar_logo, icon_image=main_body_logo)
 
 
-@st.cache_data(experimental_allow_widgets=True)
+@st.cache_data()
 def step1_analysis_type():
     
     analysis_type = st.radio(
@@ -38,7 +38,7 @@ def step1_analysis_type():
                 )
     return analysis_type
 
-@st.cache_data(experimental_allow_widgets=True)
+@st.cache_data()
 def step2_genome_assembly(analysis):
     assembly = st.radio(
                 "Select an option",
@@ -55,12 +55,14 @@ def step2_genome_assembly(analysis):
     assembly_file, df_assembly = genome_regions.genome_assembly(assembly, analysis)
     return assembly_file, df_assembly, assembly
 
-@st.cache_data(experimental_allow_widgets=True)
+@st.cache_data()
 def step3_region_of_interest(analysis, df_assembly):
     # IF ANALYSIS TYPE IS 'SINGLE GENE'
     exon_selection = []
     if analysis == "Single Gene":
-        region = st.selectbox('Select a Gene of Interest', sorted(df_assembly[3].unique().tolist()), key="gene", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
+        df_assembly.head()
+        #region = st.selectbox('Select a Gene of Interest', sorted(df_assembly[3].unique().tolist()), key="gene", index=None, label_visibility="collapsed",placeholder="Select a Gene of Interest")
+        region = st.selectbox('Select a Gene of Interest', "a", index=None, key="region", label_visibility="collapsed",placeholder="Select a Gene of Interest")
         if region:  # Verifica se um gene foi selecionado
             all_exons = st.checkbox("All Exons", value=True)
             if all_exons == True:
@@ -99,7 +101,7 @@ def step3_region_of_interest(analysis, df_assembly):
     return region, exon_selection
 
 
-@st.cache_data(experimental_allow_widgets=True)
+@st.cache_data()
 # Function to select BAM files based on the selected BED
 def step4_bam_file(bam_files, region):
     # Allow the user to select BAM files in a multi-selection dropdown
