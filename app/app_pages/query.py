@@ -578,7 +578,6 @@ def app_ARDC():
             results, per_gene_size_output = gene_panel(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
         elif analysis == "Exome":
             results = exome(bam, region, bam_folder, depth_folder, analysis, assembly_file, exon_selection)
-      
         display_results(results, analysis, assembly)
         
         
