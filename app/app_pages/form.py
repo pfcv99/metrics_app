@@ -74,7 +74,7 @@ def single_gene(genes_list):
             st.write(st.session_state.assembly)
             st.write(st.session_state.gene)
             st.write(st.session_state.bam)
-            st.page_link("/app_pages/results.py", label="Results", icon=":material/table_chart_view:")
+            st.page_link("app_pages/results.py", label="Results", icon=":material/table_chart_view:")
 
 
 def gene_panel(panel_list):
