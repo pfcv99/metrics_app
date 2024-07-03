@@ -2,6 +2,7 @@ import streamlit as st
 from components import genome
 from components import streamlit_page_config
 from pathlib import Path
+import time
 
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
@@ -18,7 +19,9 @@ if 'analysis' not in st.session_state:
 if 'assembly' not in st.session_state:
     st.session_state['assembly'] = "GRCh37/hg19"  # Initialize with the first valid option
 
-    
+if 'bam' not in st.session_state:
+    st.session_state['bam'] = []
+
 st.title("Metrics calculator\n")
 
 
@@ -70,11 +73,17 @@ def single_gene(genes_list):
         # Every form must have a submit button.
         submitted = st.form_submit_button("Submit")
         if submitted:
+            progress_text = "Operation in progress. Please wait."
+            my_bar = st.progress(0, text=progress_text)
+
+            for percent_complete in range(100):
+                time.sleep(0.01)
+                my_bar.progress(percent_complete + 1, text=progress_text)
+            time.sleep(1)
+            my_bar.empty()
             st.success("Form submitted")
-            st.write(st.session_state.assembly)
-            st.write(st.session_state.gene)
-            st.write(st.session_state.bam)
-            st.page_link("app_pages/results.py", label="Results", icon=":material/table_chart_view:")
+            time.sleep(2)
+            st.switch_page("app_pages/results.py")
 
 
 def gene_panel(panel_list):
@@ -204,7 +213,6 @@ panel = genome.panel()
 panel_list = sorted([str(panel) for panel in panel])
 print(panel_list)
 with tab1:
-    st.header("Single Gene")
     single_gene(genes_list)
 
 with tab2:

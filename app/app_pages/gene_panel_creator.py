@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+
 def panel_creator(panel_df):
     df = pd.DataFrame(panel_df)
     panel_name = st.text_input("Panel Name", placeholder="Enter Panel Name")
@@ -38,28 +39,31 @@ def download_panel(panel_df, universal_bed_df):
         genes_str = panel_df[panel_df['Panel Name PT (Klims)'] == panel]["Genes"].values[0]
         genes_lst = [gene.strip() for gene in genes_str.split(',')]
         st.data_editor(panel_df[panel_df['Panel Name PT (Klims)'] == panel]["Genes"], hide_index=True, use_container_width=True)
-        
-        # Filtrar o arquivo BED universal para incluir apenas as linhas correspondentes aos genes selecionados
-        filtered_bed = universal_bed_df[universal_bed_df[3].isin(genes_lst)]
-        
-        # Encontrar genes que não estão na BED universal
-        not_found_genes = [gene for gene in genes_lst if gene not in universal_bed_df[3].values]
-        count = len(not_found_genes)
-        if not_found_genes:
-            st.warning(f"{count} genes not found in the universal BED file: {', '.join(not_found_genes)}")
-        
-        # Fornecer um botão para download do arquivo BED filtrado
-        st.download_button(
-            label="Download BED",
-            data=filtered_bed.to_csv(sep='\t', header=False, index=False).encode("utf-8"),
-            file_name=f"{panel}.bed",
-            mime="text/bed"
-        )
+        with st.status("Getting BED file ready...", expanded=True) as status:
+            status.update(label="Searching for genes...", state="running", expanded=False)
+            # Filter the universal BED file to include only the rows corresponding to the selected genes using pattern matching
+            pattern = '|'.join(r'\b' + gene + r'\b' for gene in genes_lst)
+            filtered_bed = universal_bed_df[universal_bed_df[3].str.contains(pattern, regex=True, na=False)]
+            # Find genes not in the universal BED file
+            not_found_genes = [gene for gene in genes_lst if not universal_bed_df[3].str.contains(r'\b' + gene + r'\b', regex=True, na=False).any()]
+            count = len(not_found_genes)
+            if not_found_genes:
+                status.update(label="Gene symbols don't match!", state="error", expanded=True)
+                st.warning(f"{count} gene(s) not found in the universal BED file: {', '.join(not_found_genes)}.\n\nPlease check the gene symbols and try again.")
+            else:
+                status.update(label="All genes found! Ready for download", state="complete", expanded=True)
+                # Fornecer um botão para download do arquivo BED filtrado
+                st.download_button(
+                    label="Download BED",
+                    data=filtered_bed.to_csv(sep='\t', header=False, index=False).encode("utf-8"),
+                    file_name=f"{panel}.bed",
+                    mime="text/bed"
+                )
         
 
 # Ler os dados dos painéis e do BED universal dos arquivos CSV
 panel_df = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=';', header=0, encoding='latin1')
-universal_bed_df = pd.read_csv('data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.BED', sep='\t', header=None)
+universal_bed_df = pd.read_csv('data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated.BED', sep='\t', header=None)
 
 st.title("Gene Panel Creator")
 panel_creator(panel_df)

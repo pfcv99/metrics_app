@@ -11,10 +11,12 @@ page = {
         st.Page("app_pages/login.py", title="Log in", icon=":material/login:"),
         st.Page("app_pages/settings.py", title="Settings", icon=":material/settings:")
     ],
-    "Tools" : [
-        st.Page("app_pages/query.py", title="Metrics calculator", icon=":material/analytics:"),
+    "Metrics calculator" : [
+        st.Page("app_pages/form.py", title="Query", icon=":material/analytics:"),
+        st.Page("app_pages/results.py", title="Results", icon=":material/table_chart_view:"),
+    ],
+    "Gene panels" : [
         st.Page("app_pages/gene_panel_creator.py", title="Gene panel creator", icon=":material/edit_note:"),
-        st.Page("app_pages/form.py", title="Form", icon=":material/edit_note:"),
     ],
     "About" : [
         st.Page("app_pages/3_About.py", title="About", icon=":material/info:")
