@@ -24,7 +24,7 @@ import pandas as pd
 #    df_ucsc = pd.DataFrame(data_ucsc)
 #    return path, df_ucsc
 
-def genome_assembly(assembly, analysis):
+def assembly(assembly, analysis):
     paths = {
         "GRCh38/hg38": {
             "Single Gene": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.bed',
@@ -49,4 +49,4 @@ def panel():
         }
     path = paths.get("Gene Panel")
     if path:
-        return pd.read_csv(path, sep=',', header=None)
+        return pd.read_csv(path, sep=';', header=0, encoding='latin1')

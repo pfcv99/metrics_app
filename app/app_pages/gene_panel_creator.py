@@ -42,6 +42,12 @@ def download_panel(panel_df, universal_bed_df):
         # Filtrar o arquivo BED universal para incluir apenas as linhas correspondentes aos genes selecionados
         filtered_bed = universal_bed_df[universal_bed_df[3].isin(genes_lst)]
         
+        # Encontrar genes que não estão na BED universal
+        not_found_genes = [gene for gene in genes_lst if gene not in universal_bed_df[3].values]
+        count = len(not_found_genes)
+        if not_found_genes:
+            st.warning(f"{count} genes not found in the universal BED file: {', '.join(not_found_genes)}")
+        
         # Fornecer um botão para download do arquivo BED filtrado
         st.download_button(
             label="Download BED",

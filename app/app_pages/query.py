@@ -1,5 +1,3 @@
-# metrics_app/app/pages/1_Analyser.py
-
 # Import necessary libraries
 import streamlit as st
 import pandas as pd
@@ -9,7 +7,7 @@ import os
 from components import streamlit_page_config
 from components import samtools_depth as sd 
 from components import logo
-from components import genome_regions
+from components import genome
 from components import gene_panel_creator as pc
 from time import sleep
 from stqdm import stqdm
@@ -49,10 +47,10 @@ def step2_genome_assembly(analysis):
                 horizontal=True, index=1
                 )
     #if assembly == "GRCh38/hg38":
-    #    assembly_file = genome_regions.mane(analysis)
+    #    assembly_file = genome.mane(analysis)
     #elif assembly == "GRCh37/hg19":
-    #    assembly_file = genome_regions.ucsc(analysis) 
-    assembly_file, df_assembly = genome_regions.genome_assembly(assembly, analysis)
+    #    assembly_file = genome.ucsc(analysis) 
+    assembly_file, df_assembly = genome.genome_assembly(assembly, analysis)
     return assembly_file, df_assembly, assembly
 
 @st.cache_data()
