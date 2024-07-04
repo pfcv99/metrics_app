@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/pfcv99/metrics_app.git .
+RUN git clone https://github.com/pfcv99/metrics_app#optimization .
 
 RUN pip install -r requirements.txt
 
