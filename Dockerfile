@@ -9,9 +9,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
+    pip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone git@github.com:pfcv99/metrics_app.git#optimization .
+RUN git clone https://github.com/pfcv99/metrics_app.git#optimization .
 
 RUN pip install -r requirements.txt
 
