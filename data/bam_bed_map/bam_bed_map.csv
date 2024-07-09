@@ -193,3 +193,8 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,UBA1_ex3.bed,1129267B.bam
 ,MYD88_ex5_8bp.bed,1131999.bam
 ,MYD88_ex5_8bp.bed,1131857.bam
+,UBA1_ex3.bed,1132036.bam
+,JAK2_CALR_MPL.bed,1132631.bam
+,Painel_SMP-SMD_8bp.bed,1132540.bam
+,CXCR4_MYD88.bed,1132389.bam
+,CXCR4_MYD88.bed,1133036.bam
