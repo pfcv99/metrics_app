@@ -45,13 +45,13 @@ panel_builder_pages = [gene_panel_creator]
 about_pages = [about]
 
 page_dict = {}
-if st.session_state.user and st.session_state.password in ["userA", "admin"]:
+if (st.session_state.user in [st.secrets.admin.user] and st.session_state.password in [st.secrets.admin.password]) or (st.session_state.user in [st.secrets.userA.user] and st.session_state.password in [st.secrets.userA.password]):
     page_dict["Metrics calculator"] = metrics_pages
-if st.session_state.user and st.session_state.password in ["userB", "admin"]:
+if (st.session_state.user in [st.secrets.admin.user] and st.session_state.password in [st.secrets.admin.password]) or (st.session_state.user in [st.secrets.userB.user] and st.session_state.password in [st.secrets.userB.password]):
     page_dict["Gene panels"] = panel_builder_pages
-if st.session_state.user and st.session_state.password in ["userA", "userB", "admin"]:
+if (st.session_state.user in [st.secrets.admin.user] and st.session_state.password in [st.secrets.admin.password]) or (st.session_state.user in [st.secrets.userA.user] and st.session_state.password in [st.secrets.userA.password]) or (st.session_state.user in [st.secrets.userB.user] and st.session_state.password in [st.secrets.userB.password]):
     page_dict["About"] = about_pages
-
+    
 if len(page_dict) > 0:
     pg = st.navigation({"Account": account_pages} | page_dict)
 else:

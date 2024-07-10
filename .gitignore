@@ -22,3 +22,7 @@ data/regions/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Secrets
+######################
+.streamlit/secrets.toml
