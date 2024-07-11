@@ -10,6 +10,7 @@ st.title("Results")
 tab1, tab2, tab3 = st.tabs(["Overview", "Gene Detail", "Exon Detail"])
 
 with tab1:
+    df = pd.DataFrame(columns=["command", "rating", "is_widget"])
     df = pd.DataFrame(
     [
         {"command": "st.selectbox", "rating": 4, "is_widget": True},
