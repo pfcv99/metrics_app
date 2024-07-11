@@ -37,7 +37,9 @@ with tab1:
 
     favorite_command = edited_df.loc[edited_df["rating"].idxmax()]["command"]
     st.markdown(f"Your favorite command is **{favorite_command}** 🎈")
-
+    st.session_state.assembly
+    st.session_state.region
+    st.session_state.bam
 with tab2:
     st.write("Gene Detail")
     

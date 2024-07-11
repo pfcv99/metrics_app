@@ -71,5 +71,5 @@ if credentials in [admin_credentials, userA_credentials, userB_credentials]:
 if page_dict:
     pg = st.navigation({"Account": account_pages} | page_dict)
 else:
-    pg = st.navigation([st.Page(login, title="Unilabs app | Log in", icon=":material/login:")])
+    pg = st.navigation([st.Page(login)])
 pg.run()
