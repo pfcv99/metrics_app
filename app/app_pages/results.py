@@ -32,12 +32,13 @@ for col in columns["Basic Information"]:
 with st.popover("Filters"):
     st.subheader("Select Columns to Display")
     
-    # Botões para selecionar e desmarcar todas as colunas
-    if st.button("Select All"):
-        select_all_columns(True, columns)
+    # Verifica se todas as colunas estão selecionadas
+    all_selected = all(st.session_state.get(f"col_{col}", False) for section in columns.values() for col in section)
     
-    if st.button("Deselect All"):
-        select_all_columns(False, columns)
+    # Alterna entre selecionar e desmarcar todas as colunas
+    if st.button("Select All" if not all_selected else "Deselect All"):
+        select_all_columns(not all_selected, columns)
+        st.rerun()
 
     # Organizando checkboxes em três colunas
     col1, col2, col3 = st.columns(3)
@@ -81,8 +82,6 @@ data = {
 filtered_data = {col: data[col] for col in selected_columns}
 df = pd.DataFrame(filtered_data)
 
-# Exibindo o DataFrame
-st.write("## DataFrame with Selected Columns")
 st.dataframe(df)
     #df = pd.DataFrame(
     #[
