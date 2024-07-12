@@ -1,6 +1,6 @@
 # metrics_app/Dockerfile
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 WORKDIR /metrics_app
 
