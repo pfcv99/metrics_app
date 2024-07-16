@@ -13,19 +13,6 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Miniconda
-RUN curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh \
-    && bash miniconda.sh -b -p /opt/conda \
-    && rm miniconda.sh
-
-# Add conda to PATH
-ENV PATH=/opt/conda/bin:$PATH
-
-# Configure conda channels
-RUN conda config --add channels defaults \
-    && conda config --add channels bioconda \
-    && conda config --add channels conda-forge
-
 # Clone the repository
 RUN git clone https://github.com/pfcv99/metrics_app.git -b optimization .
 

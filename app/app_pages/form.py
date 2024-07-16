@@ -17,7 +17,7 @@ if 'analysis' not in st.session_state:
     st.session_state.analysis = 'Single Gene'  # Initialize with the first valid option
     
 if 'assembly' not in st.session_state:
-    st.session_state.assembly = "GRCh37/hg19"  # Initialize with the first valid option
+    st.session_state.assembly = "GRCh38/hg38"  # Initialize with the first valid option
 
 if 'region' not in st.session_state:
     st.session_state.region = None
@@ -28,13 +28,13 @@ if 'bam' not in st.session_state:
 st.title("Metrics calculator\n")
 
 def session_state_update():
-    st.session_state.assembly = st.session_state.assembly
-    st.session_state.region = st.session_state.region
-    st.session_state.bam = st.session_state.bam
+    st.session_state.assembly = st.session_state.assembly_value
+    st.session_state.region = st.session_state.region_value
+    st.session_state.bam = st.session_state.bam_value
 
-def single_gene(genes_list):
+def single_gene():
 
-    with st.form("form", clear_on_submit=True):
+    with st.form(clear_on_submit=False, key="form"):
                 
         st.markdown(
                     "#### Genome Assembly",
@@ -48,10 +48,11 @@ def single_gene(genes_list):
         st.radio(
                 "Select an option",
                 ["GRCh37/hg19", "GRCh38/hg38"],
-                key="assembly",
+                key="assembly_value",
                 label_visibility="visible",
                 disabled=False,
-                horizontal=True
+                horizontal=True,
+                index = None
                 )       
         st.markdown(
                         "#### Gene of Interest",
@@ -63,9 +64,11 @@ def single_gene(genes_list):
                             "- Ensure that the selected :red[Gene of Interest]  corresponds to the genomic region you want to analyze.   "
                         )
                     )
-
+        # Convert all elements to strings before sorting
+        genes = genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][3].unique().tolist() #ISTO NÃO ESTÁ A FUNCIONAR CORRETAMENTE
+        genes_list = sorted([str(gene) for gene in genes]) #NEM ISTO. NÃO ATUALIZA DE FORMA DINÂMICA. ESTÁ SEMPRE A MOSTRAR O GRCh37/hg19
         # Now use the sorted list in the selectbox
-        st.selectbox('Select a Gene of Interest', genes_list, key="region", index=None, label_visibility="collapsed", placeholder="Select a Gene of Interest")
+        st.selectbox('Select a Gene of Interest', genes_list, key="region_value", index=None, label_visibility="collapsed", placeholder="Select a Gene of Interest")
         st.markdown(
                     "#### BAM file",
                     help=(
@@ -76,7 +79,7 @@ def single_gene(genes_list):
                     )
                 )
         bam_files = [f.name for f in Path("./data/mapped").iterdir() if f.suffix == ".bam" or f.suffix == ".cram"]
-        st.multiselect('Select a BAM file', bam_files, key="bam", label_visibility="collapsed",placeholder="Select a BAM file")
+        st.multiselect('Select a BAM file', bam_files, key="bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
         # Every form must have a submit button.
         submitted = st.form_submit_button("Submit", on_click=session_state_update)
         if submitted:
@@ -109,15 +112,13 @@ tab1, tab2, tab3 = st.tabs(["Single Gene", "Gene Panel", "Exome"], )
 
 
 
-# Convert all elements to strings before sorting
-genes = genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][3].unique().tolist()
-genes_list = sorted([str(gene) for gene in genes])
+
 
 panel = genome.panel()
 panel_list = sorted([str(panel) for panel in panel])
 
 with tab1:
-    single_gene(genes_list)
+    single_gene()
 
 with tab2:
     st.header("Gene Panel")
