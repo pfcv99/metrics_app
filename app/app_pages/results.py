@@ -96,10 +96,9 @@ with tab3:
     st.write("Exon Detail")
 
 
-#import streamlit as st
-#from st_files_connection import FilesConnection
-#import s3fs
-#
-#conn = st.connection('s3', type=FilesConnection)
-#df2 = conn.read("unilabs/bam_bed_map.csv", input_format="csv", ttl=600)
-#st.dataframe(df2)
+import streamlit as st
+from st_files_connection import FilesConnection
+
+conn = st.connection('s3', type=FilesConnection)
+df2 = conn.read("unilabs/bam_bed_map.csv", input_format="csv", ttl=600)
+st.dataframe(df2)
