@@ -1,15 +1,8 @@
 import streamlit as st
-from components import genome
-from components import streamlit_page_config
 from pathlib import Path
 import time
+from components import genome
 
-# Set Streamlit page configuration
-streamlit_page_config.set_page_configuration()
-
-sidebar_logo = "data/img/unilabs_logo.png"
-main_body_logo = "data/img/thumbnail_image001.png"
-st.logo(sidebar_logo, icon_image=main_body_logo)
 
 
 # Initialize session state variables with valid default values
@@ -25,8 +18,6 @@ if 'region' not in st.session_state:
 if 'bam' not in st.session_state:
     st.session_state.bam = []
 
-st.title("Metrics calculator\n")
-
 def session_state_update():
     st.session_state.assembly = st.session_state.assembly_value
     st.session_state.region = st.session_state.region_value
@@ -34,7 +25,7 @@ def session_state_update():
 
 def single_gene():
 
-    with st.form(clear_on_submit=False, key="form"):
+    with st.container():
                 
         st.markdown(
                     "#### Genome Assembly",
@@ -81,7 +72,7 @@ def single_gene():
         bam_files = [f.name for f in Path("./data/mapped").iterdir() if f.suffix == ".bam" or f.suffix == ".cram"]
         st.multiselect('Select a BAM file', bam_files, key="bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
         # Every form must have a submit button.
-        submitted = st.form_submit_button("Submit", on_click=session_state_update)
+        submitted = st.button("Submit", on_click=session_state_update)
         if submitted:
             progress_text = "Operation in progress. Please wait."
             my_bar = st.progress(0, text=progress_text)
@@ -96,34 +87,5 @@ def single_gene():
             
             st.switch_page("app_pages/results.py")
 
-
-font_css = """
-<style>
-button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-  font-size: 24px;
-  margin-right: 70px;
-  align: left;
-}
-</style>
-"""
-
-st.write(font_css, unsafe_allow_html=True) 
-tab1, tab2, tab3 = st.tabs(["Single Gene", "Gene Panel", "Exome"], )
-
-
-
-
-
-panel = genome.panel()
-panel_list = sorted([str(panel) for panel in panel])
-
-with tab1:
-    single_gene()
-
-with tab2:
-    st.header("Gene Panel")
-    #gene_panel(panel_list)
-
-with tab3:
-    st.header("Exome")
-    #exome(genes_list)
+def gene_panel(panel_list):
+    st.write(panel_list)

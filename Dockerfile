@@ -1,5 +1,3 @@
-# metrics_app/Dockerfile
-
 FROM ubuntu:24.04
 
 WORKDIR /metrics_app
@@ -10,24 +8,33 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
+    python3.12 \
+    python3.12-dev \
+    python3.12-venv \
     python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+    python3-wheel && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Clone the repository
-RUN git clone https://github.com/pfcv99/metrics_app.git -b optimization .
+# Create and activate virtual environment
+RUN python3.12 -m venv /home/myuser/venv --system-site-packages
 
-# Change to the cloned repository directory
-WORKDIR /metrics_app
+# Set environment variables
+ENV VIRTUAL_ENV=/home/myuser/venv
+ENV PATH="/home/myuser/venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
-# Install conda dependencies
-RUN conda install -y --file conda_requirements.txt \
-    && conda clean -a -y
+# Clone the repository (or consider using COPY if you have the repo locally)
+RUN git clone -b optimization https://github.com/pfcv99/metrics_app.git .
 
-# Install pip dependencies
-RUN pip install -r pip_requirements.txt
+# Install Python packages
+RUN pip install --no-cache-dir wheel streamlit
 
+# Expose the port the app runs on
 EXPOSE 8501
 
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+# Healthcheck to verify if the app is running
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
-ENTRYPOINT ["streamlit", "run", "app/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Set the entry point for the container
+ENTRYPOINT ["streamlit", "run", "app/Home.py", "--server.port=8501", "--server.address=172.19.16.1"]

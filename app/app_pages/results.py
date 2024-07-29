@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from components import dataframe, metrics
+from components import dataframe, metrics, s3
 from st_files_connection import FilesConnection
 
 sidebar_logo = "data/img/unilabs_logo.png"
@@ -18,7 +18,7 @@ def select_all_columns(select_all, columns):
             
 with tab1:
     columns = {
-    "Basic Information": ["Date", "BAM", "Region", "Average Read Depth", "Size Coding"],
+    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
     "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)", 
                  "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)"],
     "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)", 
@@ -52,8 +52,10 @@ with tab1:
                     st.checkbox(col, key=f"col_{col}")
 
         # Cria o DataFrame com base nas colunas selecionadas
+    mandatory_columns = ["Date", "BAM", "Region"]
     selected_columns = [col for section in columns.values() for col in section if st.session_state.get(f"col_{col}", False)]
-
+    final_columns = mandatory_columns + selected_columns
+    
     # Exemplo de dados para preencher o DataFrame
     data = {
         "Date": ["2023-01-01", "2023-01-02"],
@@ -61,6 +63,7 @@ with tab1:
         "Region": ["Region1", "Region2"],
         "Average Read Depth": [30, 40],
         "Size Coding": [1000, 2000],
+        "Size Covered":[295, 370],
         "Coverage (0-1x)": [0, 0],
         "Coverage (2-10x)": [5, 10],
         "Coverage (11-15x)": [15, 20],
@@ -80,11 +83,10 @@ with tab1:
     }
 
     # Filtrando apenas as colunas selecionadas
-    filtered_data = {col: data[col] for col in selected_columns}
+    filtered_data = {col: data[col] for col in final_columns}
     df = pd.DataFrame(filtered_data)
 
     st.dataframe(df)
-
 
 with tab2:
     st.write("Gene Detail")
@@ -96,9 +98,4 @@ with tab3:
     st.write("Exon Detail")
 
 
-import streamlit as st
-from st_files_connection import FilesConnection
-
-conn = st.connection('s3', type=FilesConnection)
-df2 = conn.read("unilabs/bam_bed_map.csv", input_format="csv", ttl=600)
-st.dataframe(df2)
+#s3.bam_cram()

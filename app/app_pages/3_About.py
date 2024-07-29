@@ -1,6 +1,5 @@
 import streamlit as st
 from components import streamlit_page_config
-from components import logo
 
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
