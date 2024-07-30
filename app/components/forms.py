@@ -18,6 +18,9 @@ if 'region' not in st.session_state:
 if 'bam' not in st.session_state:
     st.session_state.bam = []
 
+if 'sucess' not in st.session_state:
+    st.session_state.sucess = None
+
 def session_state_update():
     st.session_state.assembly = st.session_state.assembly_value
     st.session_state.region = st.session_state.region_value
@@ -25,7 +28,7 @@ def session_state_update():
 
 def single_gene():
 
-    with st.container():
+    with st.container(border=True):
                 
         st.markdown(
                     "#### Genome Assembly",
@@ -43,7 +46,7 @@ def single_gene():
                 label_visibility="visible",
                 disabled=False,
                 horizontal=True,
-                index = None
+                index = 1
                 )       
         st.markdown(
                         "#### Gene of Interest",
@@ -74,18 +77,22 @@ def single_gene():
         # Every form must have a submit button.
         submitted = st.button("Submit", on_click=session_state_update)
         if submitted:
-            progress_text = "Operation in progress. Please wait."
-            my_bar = st.progress(0, text=progress_text)
-            for percent_complete in range(100):
-                time.sleep(0.01)
-                my_bar.progress(percent_complete + 1, text=progress_text)
-            time.sleep(1)
-            my_bar.empty()
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam:
+                progress_text = "Operation in progress. Please wait."
+                my_bar = st.progress(0, text=progress_text)
+                for percent_complete in range(100):
+                    time.sleep(0.01)
+                    my_bar.progress(percent_complete + 1, text=progress_text)
+                time.sleep(1)
+                my_bar.empty()
+                
+                st.success("Form submitted")
+                st.session_state.sucess = True
+                time.sleep(2)
             
-            st.success("Form submitted")
-            time.sleep(2)
-            
-            st.switch_page("app_pages/results.py")
+                st.switch_page("app_pages/results.py")
+            else:
+                st.warning("Form not submitted. Please fill in all fields.")
 
 def gene_panel(panel_list):
     st.write(panel_list)

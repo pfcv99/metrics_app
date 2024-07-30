@@ -1,6 +1,6 @@
 import streamlit as st
 
-@st.experimental_dialog("Sign up")
+@st.dialog("Sign up")
 
 def form():
     with st.form(key='my_form'):

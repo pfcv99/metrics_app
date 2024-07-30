@@ -13,14 +13,18 @@ if "password" not in st.session_state:
     st.session_state.password = None
 
 
-@st.dialog("Log in")
+@st.dialog(" ", width="large")
 def login():
-    user = st.text_input("User")
-    password = st.text_input("Password", type="password")
-    if st.button("Log in"):
-        st.session_state.user = user
-        st.session_state.password = password
-        st.rerun()
+    col1, col2, col3 = st.columns(3)
+    with col2:
+        st.image(sidebar_logo, width=200)
+    with st.container():
+        user = st.text_input("User")
+        password = st.text_input("Password", type="password")
+        if st.button("Log in"):
+            st.session_state.user = user
+            st.session_state.password = password
+            st.rerun()
 
 
 
