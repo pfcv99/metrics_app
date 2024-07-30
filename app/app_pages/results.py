@@ -91,7 +91,9 @@ with tab1:
         df = pd.DataFrame(filtered_data)
 
         st.dataframe(df)
-
+        
+        s3.cram()
+        
 with tab2:
     with st.container(border=True):
         st.write("Gene Detail")
@@ -107,4 +109,6 @@ with tab3:
         df = dataframe.dataframe()
         st.dataframe(df)
 
+
+    
 #s3.bam_cram()

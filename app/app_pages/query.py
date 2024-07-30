@@ -35,8 +35,7 @@ with tab1:
     forms.single_gene()
 
 with tab2:
-    st.header("Gene Panel")
-    #forms.gene_panel()
+    forms.gene_panel()
 
 with tab3:
     st.header("Exome")

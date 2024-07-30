@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import time
 
 
 def panel_creator(panel_df):
@@ -10,8 +11,16 @@ def panel_creator(panel_df):
         # Add the new panel to the DataFrame and save to CSV
         new_panel = {'Panel Name PT (Klims)': panel_name, 'Genes': genes}
         df = pd.concat([df, pd.DataFrame([new_panel])], ignore_index=True)
-        df.to_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=';', index=False, encoding="latin1")  # Save updated DataFrame to CSV
+        df.to_excel('data/regions/gene_panels/BED_Files_Emedgene_2.xlsx', index=False)  # Save updated DataFrame to CSV
+        progress_text = "Operation in progress. Please wait."
+        my_bar = st.progress(0, text=progress_text)
+        for percent_complete in range(100):
+            time.sleep(0.01)
+            my_bar.progress(percent_complete + 1, text=progress_text)
+        time.sleep(1)
+        my_bar.empty()
         st.success("Panel created successfully!", icon=":material/check:")
+        time.sleep(2)
         st.rerun() #TO IMPROVE: not the ideal way to rerun the page
         
 
@@ -62,7 +71,7 @@ def download_panel(panel_df, universal_bed_df):
         
 
 # Ler os dados dos painéis e do BED universal dos arquivos CSV
-panel_df = pd.read_csv('data/regions/gene_panels/BED_Files_Emedgene_2.csv', sep=';', header=0, encoding='latin1')
+panel_df = pd.read_excel('data/regions/gene_panels/BED_Files_Emedgene_2.xlsx', header=0)
 universal_bed_df = pd.read_csv('data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated.BED', sep='\t', header=None)
 
 st.title("Gene Panel Creator")

@@ -45,8 +45,8 @@ def assembly(assembly, analysis):
   
 def panel():
     paths = {
-        "Gene Panel" : 'data/regions/gene_panels/BED_Files_Emedgene_2.csv'
+        "Gene Panel" : 'data/regions/gene_panels/BED_Files_Emedgene_2.xlsx'
         }
     path = paths.get("Gene Panel")
     if path:
-        return pd.read_csv(path, sep=';', header=0, encoding='latin1')
+        return pd.read_excel(path, header=0)
