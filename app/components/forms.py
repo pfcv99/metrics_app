@@ -20,15 +20,7 @@ def session_state_initialize():
         if key not in st.session_state:
             st.session_state[key] = value
         
-def session_state_update():
-    if st.session_state.analysis == 'Single Gene':
-        
-        st.session_state.bam = st.session_state.bam_value
-    elif st.session_state.analysis == 'Gene Panel':
 
-        
-        st.session_state.bam = st.session_state.panel_bam_value
-        
 def single_gene():
     session_state_initialize()
     with st.container(border=True):
@@ -93,6 +85,9 @@ def single_gene():
                 )
         bam_files = st.session_state.cram_files
         st.multiselect('Select a BAM file', bam_files, key="bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
+        
+        st.session_state.bam = st.session_state.bam_value
+        
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit")
         if submitted:
@@ -165,8 +160,11 @@ def gene_panel():
                 )
         bam_files = st.session_state.cram_files
         st.multiselect('Select a BAM file', bam_files, key="panel_bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
+        
+        st.session_state.bam = st.session_state.panel_bam_value
+        
         # Every form must have a submit button.
-        panel_submitted = st.button("Submit", on_click=session_state_update, key="panel_submit")
+        panel_submitted = st.button("Submit", key="panel_submit")
         if panel_submitted:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam:
                 progress_text = "Operation in progress. Please wait."
