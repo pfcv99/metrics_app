@@ -92,7 +92,7 @@ with tab1:
 
         st.dataframe(df)
         
-        s3.cram()
+        
         
 with tab2:
     with st.container(border=True):

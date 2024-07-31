@@ -1,5 +1,5 @@
 import streamlit as st
-from components import genome, streamlit_page_config, forms
+from components import genome, streamlit_page_config, forms, s3
 
 
 # Set Streamlit page configuration
@@ -31,12 +31,19 @@ tab1, tab2, tab3 = st.tabs(["Single Gene", "Gene Panel", "Exome"], )
 panel = genome.panel()
 panel_list = sorted([str(panel) for panel in panel])
 
+
 with tab1:
+    if tab1:
+        st.session_state.analysis = 'Single Gene'
     forms.single_gene()
 
 with tab2:
+    if tab2:
+        st.session_state.analysis = 'Gene Panel'
     forms.gene_panel()
 
 with tab3:
+    if tab3:
+        st.session_state.analysis = 'Exome'
     st.header("Exome")
     #exome(genes_list)

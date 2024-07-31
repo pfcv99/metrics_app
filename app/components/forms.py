@@ -6,31 +6,29 @@ from components import genome
 
 def session_state_initialize():
     # Initialize session state variables with valid default values
-    if 'analysis' not in st.session_state:
-        st.session_state.analysis = 'Single Gene'  # Initialize with the first valid option
-
-    if 'assembly' not in st.session_state:
-        st.session_state.assembly = "GRCh38/hg38"  # Initialize with the first valid option
-
-    if 'region' not in st.session_state:
-        st.session_state.region = None
-
-    if 'bam' not in st.session_state:
-        st.session_state.bam = []
-
-    if 'sucess' not in st.session_state:
-        st.session_state.sucess = None
-
-def session_state_update():
-    st.session_state.assembly = st.session_state.assembly_value
-    st.session_state.region = st.session_state.region_value
-    st.session_state.bam = st.session_state.bam_value
+    defaults = {
+        'analysis': 'Single Gene',
+        'assembly': "GRCh38/hg38",
+        'region': None,
+        'bam': [],
+        'success': None,
+        'exon_value': [],
+        'all_exons': True
+    }
     
-def panel_session_state_update():
-    st.session_state.assembly = st.session_state.panel_assembly_value
-    st.session_state.region = st.session_state.panel_region_value
-    st.session_state.bam = st.session_state.panel_bam_value
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+        
+def session_state_update():
+    if st.session_state.analysis == 'Single Gene':
+        
+        st.session_state.bam = st.session_state.bam_value
+    elif st.session_state.analysis == 'Gene Panel':
 
+        
+        st.session_state.bam = st.session_state.panel_bam_value
+        
 def single_gene():
     session_state_initialize()
     with st.container(border=True):
@@ -50,10 +48,17 @@ def single_gene():
                 key="assembly_value",
                 label_visibility="visible",
                 disabled=False,
-                horizontal=True,
-                index = 1
-                )       
-        st.markdown(
+                horizontal=True
+                )
+        
+        st.session_state.assembly = st.session_state.assembly_value
+        
+        # Dynamically update the genes list when assembly changes
+        genes_list = sorted([str(gene) for gene in genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][3].unique().tolist()]) #NEM ISTO. NÃO ATUALIZA DE FORMA DINÂMICA. ESTÁ SEMPRE A MOSTRAR O GRCh37/hg19
+        # Now use the sorted list in the selectbox
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(
                         "#### Gene of Interest",
                         help=(
                             "**Please select a Gene of Interest.**\n"
@@ -63,13 +68,11 @@ def single_gene():
                             "- Ensure that the selected :red[Gene of Interest]  corresponds to the genomic region you want to analyze.   "
                         )
                     )
-        # Convert all elements to strings before sorting
-        genes = genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][3].unique().tolist() #ISTO NÃO ESTÁ A FUNCIONAR CORRETAMENTE
-        genes_list = sorted([str(gene) for gene in genes]) #NEM ISTO. NÃO ATUALIZA DE FORMA DINÂMICA. ESTÁ SEMPRE A MOSTRAR O GRCh37/hg19
-        # Now use the sorted list in the selectbox
-        st.selectbox('Select a Gene of Interest', genes_list, key="region_value", index=None, label_visibility="collapsed", placeholder="Select a Gene of Interest")
-        st.markdown(
-                    "#### BAM file",
+            st.selectbox('Select a Gene of Interest', genes_list, key="region_value", index=None,  label_visibility="collapsed", placeholder="Select a Gene of Interest")
+            st.session_state.region = st.session_state.region_value
+        with col2:
+            st.markdown(
+                    "#### Exons",
                     help=(
                         "**Please select a BAM file.**\n"
                         "- The selection of a :red[BAM file] is essential for   analyzing the sequencing data.\n"
@@ -77,10 +80,21 @@ def single_gene():
                         "- Ensure that the selected :red[BAM file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        bam_files = [f.name for f in Path("./data/mapped").iterdir() if f.suffix == ".bam" or f.suffix == ".cram"]
+            st.multiselect("Select exons", genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][4].unique().tolist(), key="exon_value", label_visibility="collapsed", placeholder="Select exons", disabled=st.session_state.all_exons)
+            st.checkbox("All exons", key="all_exons")
+        st.markdown(
+                    "#### BAM file(s)",
+                    help=(
+                        "**Please select a BAM file.**\n"
+                        "- The selection of a :red[BAM file] is essential for   analyzing the sequencing data.\n"
+                        "- A :red[BAM file] contains aligned sequencing reads on    the reference genome.\n"
+                        "- Ensure that the selected :red[BAM file] corresponds to   the sequencing data you want to analyze."
+                    )
+                )
+        bam_files = st.session_state.cram_files
         st.multiselect('Select a BAM file', bam_files, key="bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
         # Every form must have a submit button.
-        submitted = st.button("Submit", on_click=session_state_update, key="submit")
+        submitted = st.button("Submit", key="submit")
         if submitted:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam:
                 progress_text = "Operation in progress. Please wait."
@@ -119,7 +133,7 @@ def gene_panel():
                 label_visibility="visible",
                 disabled=False,
                 horizontal=True,
-                index = None
+                index = 1
                 )       
         st.markdown(
                         "#### Gene Panel of Interest",
@@ -131,11 +145,15 @@ def gene_panel():
                             "- Ensure that the selected :red[Gene of Interest]  corresponds to the genomic region you want to analyze.   "
                         )
                     )
+        st.session_state.assembly = st.session_state.panel_assembly_value
         # Convert all elements to strings before sorting
-        panels = genome.panel()["Panel Name EN EMEDGENE"].unique().tolist() #ISTO NÃO ESTÁ A FUNCIONAR CORRETAMENTE
+        panels = genome.panel()['Panel Name PT (Klims)'].unique().tolist() #ISTO NÃO ESTÁ A FUNCIONAR CORRETAMENTE
         panel_list = sorted([str(panel) for panel in panels]) #NEM ISTO. NÃO ATUALIZA DE FORMA DINÂMICA. ESTÁ SEMPRE A MOSTRAR O GRCh37/hg19
         # Now use the sorted list in the selectbox
         st.selectbox('Select a Gene Panel of Interest', panel_list, key="panel_region_value", index=None, label_visibility="collapsed", placeholder="Select a Gene Panel of Interest")
+        
+        st.session_state.region = st.session_state.panel_region_value
+        
         st.markdown(
                     "#### BAM file",
                     help=(
@@ -145,10 +163,10 @@ def gene_panel():
                         "- Ensure that the selected :red[BAM file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        bam_files = [f.name for f in Path("./data/mapped").iterdir() if f.suffix == ".bam" or f.suffix == ".cram"]
+        bam_files = st.session_state.cram_files
         st.multiselect('Select a BAM file', bam_files, key="panel_bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
         # Every form must have a submit button.
-        panel_submitted = st.button("Submit", on_click=panel_session_state_update, key="panel_submit")
+        panel_submitted = st.button("Submit", on_click=session_state_update, key="panel_submit")
         if panel_submitted:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam:
                 progress_text = "Operation in progress. Please wait."

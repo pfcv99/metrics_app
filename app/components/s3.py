@@ -2,30 +2,33 @@ import streamlit as st
 import boto3
 
 # Configura o recurso S3 e o cliente S3
-s3 = boto3.resource('s3')
-s3_client = boto3.client('s3')
+@st.cache_resource
+def get_s3_client():
+    return boto3.client('s3')
 
-@st.cache_data
+@st.cache_resource
+def get_s3_resource():
+    return boto3.resource('s3')
+
 def list_cram_files(bucket_name='unilabs'):
-    # Inicializa o cliente S3 para paginação
-    s3_client = boto3.client('s3')
-
+    
     # Inicializa a paginação
-    paginator = s3_client.get_paginator('list_objects_v2')
+    paginator = st.session_state.s3_client.get_paginator('list_objects_v2')
 
     # Configura o paginator para listar todos os objetos no bucket
     operation_parameters = {'Bucket': bucket_name}
-
+    
     # Lista para armazenar os ficheiros .cram encontrados
-    crams = []
+    if 'cram_files' not in st.session_state:
+        st.session_state.cram_files = []
 
     # Pagina sobre os resultados
     for page in paginator.paginate(**operation_parameters):
         for obj in page.get('Contents', []):
             if obj['Key'].endswith('.cram'):
-                crams.append(obj['Key'])
+                st.session_state.cram_files.append(obj['Key'])
 
-    return crams
+    return st.session_state.cram_files
 
 def cram():
     st.title("CRAM File Manager")
@@ -37,7 +40,7 @@ def cram():
         return
     
     # Mostra os arquivos encontrados
-    st.write(f"Found {len(cram_files)} CRAM files:")
+    st.write(f"Found {len(cram_files)} CRAM files: {cram_files}")
     selected_files = st.session_state.get('selected_files', [])
     
     # Permite ao usuário selecionar arquivos
@@ -51,7 +54,7 @@ def cram():
             st.write(f"Managing file: {file}")
             # Exemplo de leitura de um ficheiro CRAM
             # Aqui você pode implementar a leitura e exibição do conteúdo do ficheiro CRAM
-            obj = s3_client.get_object(Bucket='unilabs', Key=file)
+            obj = st.session_state.s3_client.get_object(Bucket='unilabs', Key=file)
             cram_content = obj['Body'].read()
             st.write(f"File Content: {cram_content[:100]}...")  # Mostrar apenas os primeiros 100 caracteres
 
