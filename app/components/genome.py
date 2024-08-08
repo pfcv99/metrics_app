@@ -37,7 +37,6 @@ def assembly(assembly, analysis):
     }
 
     path = paths.get(assembly, {}).get(analysis)
-    print(path)
     if path:
         return path, pd.read_csv(path, sep='\t', header=None)
     else:

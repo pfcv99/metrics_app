@@ -1,4 +1,5 @@
 import streamlit as st
+import io
 import boto3
 
 # Configura o recurso S3 e o cliente S3
@@ -30,34 +31,33 @@ def list_cram_files(bucket_name='unilabs'):
 
     return st.session_state.cram_files
 
+import boto3
+import streamlit as st
+
 def cram():
-    st.title("CRAM File Manager")
+    s3 = boto3.client('s3')
+    bucket_name = 'unilabs'
+    s3_object = st.session_state.cram[0]
+    print(s3_object)
+    obj = s3.get_object(Bucket=bucket_name, Key=s3_object)
+    
+    streaming_body = obj["Body"]
+    
+    chunk_size = 1024 * 1024  # 1 MB
+    content = b''  # Inicializar um contêiner para o conteúdo
+    
+    try:
+        for chunk in iter(lambda: streaming_body.read(chunk_size), b''):
+            # Processar cada pedaço aqui
+            # Exemplo: simplesmente imprimir o tamanho do pedaço
+            print(f'Chunk size: {len(chunk)} bytes')
 
-    # Recupera a lista de arquivos CRAM, utilizando cache para melhorar a eficiência
-    cram_files = list_cram_files()
-    if not cram_files:
-        st.write("No CRAM files found in the 'unilabs' bucket.")
-        return
-    
-    # Mostra os arquivos encontrados
-    st.write(f"Found {len(cram_files)} CRAM files: {cram_files}")
-    selected_files = st.session_state.get('selected_files', [])
-    
-    # Permite ao usuário selecionar arquivos
-    selected_files = st.multiselect("Select CRAM files to manage:", cram_files, default=selected_files)
-    
-    # Armazena os arquivos selecionados no estado da sessão
-    st.session_state['selected_files'] = selected_files
-    
-    if selected_files:
-        for file in selected_files:
-            st.write(f"Managing file: {file}")
-            # Exemplo de leitura de um ficheiro CRAM
-            # Aqui você pode implementar a leitura e exibição do conteúdo do ficheiro CRAM
-            obj = st.session_state.s3_client.get_object(Bucket='unilabs', Key=file)
-            cram_content = obj['Body'].read()
-            st.write(f"File Content: {cram_content[:100]}...")  # Mostrar apenas os primeiros 100 caracteres
+            # Adicione aqui o código para processar cada pedaço do conteúdo binário
+            # Aqui estamos apenas acumulando os pedaços em `content`
+            content += chunk
 
-# Execute a função cram se o script for executado
-if __name__ == '__main__':
-    cram()
+    finally:
+        # Certifique-se de fechar o StreamingBody quando terminar
+        streaming_body.close()
+    
+    return content

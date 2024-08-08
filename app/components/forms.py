@@ -1,7 +1,19 @@
 import streamlit as st
 from pathlib import Path
+import threading
 import time
-from components import genome
+from components import genome, s3, samtools, analysis, samtools_depth_obsolete
+from st_files_connection import FilesConnection
+import subprocess
+
+def update_progress_bar():
+    progress_text = "Operation in progress. Please wait."
+    my_bar = st.progress(0, text=progress_text)
+    for percent_complete in range(100):
+        time.sleep(0.01)
+        my_bar.progress(percent_complete + 1, text=progress_text)
+    time.sleep(1)
+    my_bar.empty()
 
 
 def session_state_initialize():
@@ -10,9 +22,9 @@ def session_state_initialize():
         'analysis': 'Single Gene',
         'assembly': "GRCh38/hg38",
         'region': None,
-        'bam': [],
+        'cram': [],
         'success': None,
-        'exon_value': [],
+        'exon': [],
         'all_exons': True
     }
     
@@ -66,39 +78,51 @@ def single_gene():
             st.markdown(
                     "#### Exons",
                     help=(
-                        "**Please select a BAM file.**\n"
-                        "- The selection of a :red[BAM file] is essential for   analyzing the sequencing data.\n"
-                        "- A :red[BAM file] contains aligned sequencing reads on    the reference genome.\n"
-                        "- Ensure that the selected :red[BAM file] corresponds to   the sequencing data you want to analyze."
+                        "**Please select a cram file.**\n"
+                        "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
+                        "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
+                        "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-            st.multiselect("Select exons", genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][4].unique().tolist(), key="exon_value", label_visibility="collapsed", placeholder="Select exons", disabled=st.session_state.all_exons)
+            df = genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][:]
+            filtered_exon = df[df[3]==st.session_state.region][4]
+            st.multiselect("Select exons",filtered_exon, key="exon_value", label_visibility="collapsed", placeholder="Select #exons", disabled=st.session_state.all_exons)
             st.checkbox("All exons", key="all_exons")
+            
+            if st.session_state.all_exons:
+                st.session_state.exon = filtered_exon.tolist()
+            else:
+                st.session_state.exon = st.session_state.exon_value
         st.markdown(
-                    "#### BAM file(s)",
+                    "#### Cram file(s)",
                     help=(
-                        "**Please select a BAM file.**\n"
-                        "- The selection of a :red[BAM file] is essential for   analyzing the sequencing data.\n"
-                        "- A :red[BAM file] contains aligned sequencing reads on    the reference genome.\n"
-                        "- Ensure that the selected :red[BAM file] corresponds to   the sequencing data you want to analyze."
+                        "**Please select a cram file.**\n"
+                        "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
+                        "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
+                        "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        bam_files = st.session_state.cram_files
-        st.multiselect('Select a BAM file', bam_files, key="bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
+        cram_files = st.session_state.cram_files
+        st.multiselect('Select a Cram file', cram_files, key="cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
-        st.session_state.bam = st.session_state.bam_value
+        st.session_state.cram = st.session_state.cram_value
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit")
         if submitted:
-            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam:
-                progress_text = "Operation in progress. Please wait."
-                my_bar = st.progress(0, text=progress_text)
-                for percent_complete in range(100):
-                    time.sleep(0.01)
-                    my_bar.progress(percent_complete + 1, text=progress_text)
-                time.sleep(1)
-                my_bar.empty()
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.cram:
+                
+                
+                # Call the samtools.depth function to calculate the depth of coverage
+                
+                
+                depth_thread = threading.Thread(target=analysis.run_single_gene())
+                depth_thread.start()
+
+                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
+                update_progress_bar()
+                # Esperar o término do thread de cálculo
+                depth_thread.join()
                 
                 st.success("Form submitted")
                 st.session_state.sucess = True
@@ -150,23 +174,23 @@ def gene_panel():
         st.session_state.region = st.session_state.panel_region_value
         
         st.markdown(
-                    "#### BAM file",
+                    "#### cram file",
                     help=(
-                        "**Please select a BAM file.**\n"
-                        "- The selection of a :red[BAM file] is essential for   analyzing the sequencing data.\n"
-                        "- A :red[BAM file] contains aligned sequencing reads on    the reference genome.\n"
-                        "- Ensure that the selected :red[BAM file] corresponds to   the sequencing data you want to analyze."
+                        "**Please select a cram file.**\n"
+                        "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
+                        "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
+                        "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        bam_files = st.session_state.cram_files
-        st.multiselect('Select a BAM file', bam_files, key="panel_bam_value", label_visibility="collapsed",placeholder="Select a BAM file")
+        cram_files = st.session_state.cram_files
+        st.multiselect('Select a cram file', cram_files, key="panel_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
-        st.session_state.bam = st.session_state.panel_bam_value
+        st.session_state.cram = st.session_state.panel_cram_value
         
         # Every form must have a submit button.
         panel_submitted = st.button("Submit", key="panel_submit")
         if panel_submitted:
-            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam:
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.cram:
                 progress_text = "Operation in progress. Please wait."
                 my_bar = st.progress(0, text=progress_text)
                 for percent_complete in range(100):
