@@ -252,6 +252,42 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,MYD88_ex5_8bp.bed,1136818.bam
 ,JAK2_CALR_MPL.bed,1136922.bam
 ,SF3B1_13_16.bed,1137485.bam
+,JAK2_12.bed,1137800.bam
+,JAK2_12.bed,1137973.bam
+,JAK2_12.bed,1137661.bam
+,TP53_8bp.bed,1138781.bam
+,MYD88_ex5_8bp.bed,1138371.bam
+,JAK2_12.bed,1138364.bam
+,JAK2_12.bed,1138338.bam
+,JAK2_12.bed,1138472.bam
+,JAK2_12.bed,1138628.bam
+,TP53_8bp.bed,1137686.bam
+,TP53_8bp.bed,1137902.bam
+,TP53_8bp.bed,1137847.bam
+,TP53_8bp.bed,1138654.bam
+,MYD88_ex5_8bp.bed,1137812.bam
+,MYD88_ex5_8bp.bed,1138340.bam
+,JAK2_CALR_MPL.bed,1138030.bam
+,SF3B1_13_16.bed,1138309.bam
+,Painel_SMP-SMD_8bp.bed,1137525.bam
+,Painel_SMP-SMD_8bp.bed,1137680.bam
+,NOTCH1_34.bed,1139211.bam
+,JAK2_CALR_MPL.bed,1136922.bam 
+,JAK2_12.bed,1139028.bam
+,JAK2_12.bed,1139125.bam
+,JAK2_12.bed,1139294.bam
+,JAK2_12.bed,1139430.bam
+,JAK2_12.bed,1139553.bam
+,JAK2_12.bed,1139557.bam
+,JAK2_12.bed,1139731.bam
+,JAK2_12.bed,1139764.bam
+,EZH2_8bp_amp5.bed,1137680B.bam
+,Painel_SMP-SMD_8bp.bed,1139182.bam
+
+
+
+
+
 
 
 
