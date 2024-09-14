@@ -13,14 +13,18 @@ if "user" not in st.session_state:
 if "password" not in st.session_state:
     st.session_state.password = None
     
-if "s3_client" not in st.session_state:
-    st.session_state.s3_client = s3.get_s3_client()
-    
-if "s3_resource" not in st.session_state:
-    st.session_state.s3_resource = s3.get_s3_resource()
-    
-if "list_cram_files" not in st.session_state:
-    st.session_state.list_cram_files = s3.list_cram_files()
+if 'bam_cram_files' not in st.session_state:
+    st.session_state.bam_cram_files = []
+
+# For S3 implementation
+#if "s3_client" not in st.session_state:
+#    st.session_state.s3_client = s3.get_s3_client()
+#    
+#if "s3_resource" not in st.session_state:
+#    st.session_state.s3_resource = s3.get_s3_resource()
+#    
+#if "list_cram_files" not in st.session_state:
+#    st.session_state.list_cram_files = s3.list_cram_files()
 
 
 @st.dialog(" ", width="large")

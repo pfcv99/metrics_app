@@ -2,7 +2,7 @@ import streamlit as st
 from pathlib import Path
 import threading
 import time
-from components import genome, s3, samtools, analysis, samtools_depth_obsolete
+from components import genome, samtools, analysis, samtools_depth_obsolete, bam_cram
 from st_files_connection import FilesConnection
 import subprocess
 
@@ -22,7 +22,7 @@ def session_state_initialize():
         'analysis': 'Single Gene',
         'assembly': "GRCh38/hg38",
         'region': None,
-        'cram': [],
+        'bam_cram': bam_cram.files(),
         'success': None,
         'exon': [],
         'all_exons': True
@@ -94,7 +94,7 @@ def single_gene():
             else:
                 st.session_state.exon = st.session_state.exon_value
         st.markdown(
-                    "#### Cram file(s)",
+                    "#### BAM/CRAM file(s)",
                     help=(
                         "**Please select a cram file.**\n"
                         "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
@@ -102,10 +102,10 @@ def single_gene():
                         "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        cram_files = st.session_state.cram_files
-        st.multiselect('Select a Cram file', cram_files, key="cram_value", label_visibility="collapsed",placeholder="Select a cram file")
+        bam_cram_files = st.session_state.bam_cram
+        st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
-        st.session_state.cram = st.session_state.cram_value
+        st.session_state.bam_cram = st.session_state.bam_cram_value
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit")
@@ -182,10 +182,10 @@ def gene_panel():
                         "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        cram_files = st.session_state.cram_files
-        st.multiselect('Select a cram file', cram_files, key="panel_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
+        bam_cram_files = st.session_state.bam_cram_files
+        st.multiselect('Select a cram file', bam_cram_files, key="panel_bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
-        st.session_state.cram = st.session_state.panel_cram_value
+        st.session_state.bam_cram_panel = st.session_state.panel_bam_cram_value
         
         # Every form must have a submit button.
         panel_submitted = st.button("Submit", key="panel_submit")
