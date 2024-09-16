@@ -73,14 +73,15 @@ credentials = (user, password)
 admin_credentials = (st.secrets.admin.user, st.secrets.admin.password)
 userA_credentials = (st.secrets.userA.user, st.secrets.userA.password)
 userB_credentials = (st.secrets.userB.user, st.secrets.userB.password)
+development = (None,None)
 
 # Build page dictionary based on user credentials
 page_dict = {}
-if credentials in [admin_credentials, userA_credentials]:
+if credentials in [admin_credentials, userA_credentials, development]:
     page_dict["Metrics calculator"] = metrics_pages
-if credentials in [admin_credentials, userB_credentials]:
+if credentials in [admin_credentials, userB_credentials, development]:
     page_dict["Gene panels"] = panel_builder_pages
-if credentials in [admin_credentials, userA_credentials, userB_credentials]:
+if credentials in [admin_credentials, userA_credentials, userB_credentials, development]:
     page_dict["About"] = about_pages
 
 

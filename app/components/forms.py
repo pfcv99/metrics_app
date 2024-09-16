@@ -23,6 +23,7 @@ def session_state_initialize():
         'assembly': "GRCh38/hg38",
         'region': None,
         'bam_cram': bam_cram.files(),
+        'bam_cram_panel': bam_cram.files(),
         'success': None,
         'exon': [],
         'all_exons': True
@@ -105,12 +106,12 @@ def single_gene():
         bam_cram_files = st.session_state.bam_cram
         st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
-        st.session_state.bam_cram = st.session_state.bam_cram_value
+        #st.session_state.bam_cram = st.session_state.bam_cram_value
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit")
         if submitted:
-            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.cram:
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam_cram:
                 
                 
                 # Call the samtools.depth function to calculate the depth of coverage
@@ -190,7 +191,7 @@ def gene_panel():
         # Every form must have a submit button.
         panel_submitted = st.button("Submit", key="panel_submit")
         if panel_submitted:
-            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.cram:
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam_cram_panel:
                 progress_text = "Operation in progress. Please wait."
                 my_bar = st.progress(0, text=progress_text)
                 for percent_complete in range(100):
