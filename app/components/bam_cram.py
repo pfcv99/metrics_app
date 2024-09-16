@@ -2,9 +2,11 @@ from pathlib import Path
 
 def files():
     # Usando Path().iterdir() para iterar pelos arquivos do diretório
-    bam_cram_files = [f.name for f in Path("./data/mapped").iterdir() if f.suffix in [".bam", ".cram"]]
+    file_dict = {f.name: str(f) for f in Path("./data/mapped").iterdir() if f.suffix in [".bam", ".cram"]}
     
-    return bam_cram_files
+    return file_dict
+
+
 
     
 #def step4_bam_file(bam_files, region):

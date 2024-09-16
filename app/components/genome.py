@@ -28,11 +28,13 @@ def assembly(assembly, analysis):
     paths = {
         "GRCh38/hg38": {
             "Single Gene": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.bed',
-            "Gene Panel": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.bed'
+            "Gene Panel": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.bed',
+            "Exome": 'data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.bed'
         },
         "GRCh37/hg19": {
             "Single Gene": 'data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.BED',
-            "Gene Panel": 'data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.BED'
+            "Gene Panel": 'data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.BED',
+            "Exome": 'data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif.BED'
         }
     }
 

@@ -17,13 +17,15 @@ def update_progress_bar():
 
 
 def session_state_initialize():
+    file_dict = bam_cram.files()
     # Initialize session state variables with valid default values
     defaults = {
         'analysis': 'Single Gene',
         'assembly': "GRCh38/hg38",
         'region': None,
         'bam_cram': bam_cram.files(),
-        'bam_cram_panel': bam_cram.files(),
+        'bam_cram_keys': file_dict.keys(),
+        'bam_cram_panel': file_dict.keys(),
         'success': None,
         'exon': [],
         'all_exons': True
@@ -103,7 +105,7 @@ def single_gene():
                         "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        bam_cram_files = st.session_state.bam_cram
+        bam_cram_files = st.session_state.bam_cram_keys
         st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
         #st.session_state.bam_cram = st.session_state.bam_cram_value
@@ -199,6 +201,73 @@ def gene_panel():
                     my_bar.progress(percent_complete + 1, text=progress_text)
                 time.sleep(1)
                 my_bar.empty()
+                
+                st.success("Form submitted")
+                st.session_state.sucess = True
+                time.sleep(2)
+            
+                st.switch_page("app_pages/results.py")
+            else:
+                st.warning("Form not submitted. Please fill in all fields.")
+                
+def exome():
+    session_state_initialize()
+    with st.container(border=True):
+                
+        st.markdown(
+                    "#### Genome Assembly",
+                    help=(
+                        "**Please select the genome assembly.**\n"
+                        "- The selection of a :red[genome assembly] is crucial for analyzing the sequencing data.\n"
+                        "- A :red[genome assembly] defines the reference genome used for aligning the sequencing reads.\n"
+                        "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
+                    )
+                )
+        st.radio(
+                "Select an option",
+                ["GRCh37/hg19", "GRCh38/hg38"],
+                key="assembly_value_exome",
+                label_visibility="visible",
+                disabled=False,
+                horizontal=True
+                )
+        
+        st.session_state.assembly_exome = st.session_state.assembly_value_exome
+        
+        # Now use the sorted list in the selectbox
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            
+            st.markdown(
+                        "#### BAM/CRAM file(s)",
+                        help=(
+                            "**Please select a cram file.**\n"
+                            "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
+                            "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
+                            "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
+                        )
+                    )
+            bam_cram_files = st.session_state.bam_cram_keys
+            st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value_exome", label_visibility="collapsed",placeholder="Select a cram file")
+        
+        #st.session_state.bam_cram = st.session_state.bam_cram_value
+        
+        # Every form must have a submit button.
+        submitted = st.button("Submit", key="submit_exome")
+        if submitted:
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram:
+                
+                
+                # Call the samtools.depth function to calculate the depth of coverage
+                
+                
+                depth_thread = threading.Thread(target=analysis.run_exome())
+                depth_thread.start()
+
+                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
+                update_progress_bar()
+                # Esperar o término do thread de cálculo
+                depth_thread.join()
                 
                 st.success("Form submitted")
                 st.session_state.sucess = True

@@ -45,5 +45,5 @@ with tab2:
 with tab3:
     if tab3:
         st.session_state.analysis = 'Exome'
-    st.header("Exome")
+    forms.exome()
     #exome(genes_list)
