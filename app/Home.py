@@ -60,12 +60,13 @@ form = st.Page("app_pages/query.py", title="Query", icon=":material/analytics:",
 results = st.Page("app_pages/results.py", title="Results", icon=":material/table_chart_view:")
 gene_panel_creator = st.Page("app_pages/gene_panel_creator.py", title="Gene panel creator", icon=":material/edit_note:",default=(user == "userB" and password == "userB"))
 about = st.Page("app_pages/3_About.py", title="About", icon=":material/info:")
+test = st.Page("app_pages/test.py", title="Test")
 
 # Group pages
 account_pages = [logout_page, settings]
 metrics_pages = [form, results]
 panel_builder_pages = [gene_panel_creator]
-about_pages = [about]
+about_pages = [about, test]
 
 # Set up credentials
 credentials = (user, password)
@@ -73,15 +74,15 @@ credentials = (user, password)
 admin_credentials = (st.secrets.admin.user, st.secrets.admin.password)
 userA_credentials = (st.secrets.userA.user, st.secrets.userA.password)
 userB_credentials = (st.secrets.userB.user, st.secrets.userB.password)
-development = (None,None)
+#development = (None,None)
 
 # Build page dictionary based on user credentials
 page_dict = {}
-if credentials in [admin_credentials, userA_credentials, development]:
+if credentials in [admin_credentials, userA_credentials]:
     page_dict["Metrics calculator"] = metrics_pages
-if credentials in [admin_credentials, userB_credentials, development]:
+if credentials in [admin_credentials, userB_credentials]:
     page_dict["Gene panels"] = panel_builder_pages
-if credentials in [admin_credentials, userA_credentials, userB_credentials, development]:
+if credentials in [admin_credentials, userA_credentials, userB_credentials]:
     page_dict["About"] = about_pages
 
 

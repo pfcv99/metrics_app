@@ -251,18 +251,21 @@
     
     
 
+import streamlit as st
 from components import metrics
 
-print(metrics.average_read_depth('data/depth/1101542.depth'))
-
-from components import samtools, dataframe
-import streamlit as st
-
-samtools.depth('data/mapped/1110366_PKD1.bam', 'data/regions/genome_exons/UCSC_hg19_exons_modif_canonical_with_difference_chr.bed', 'data/depth/1110366_PKD1.depth', ["PKD2"], ["1", "2", "3","4"])
-# Exemplo de uso:
-dicionario1 = {"PKD1": 10, "BRCA1": 25}
-dicionario2 = {"size": 10, "Idade": 30}
-dicionario3 = {"Nome": "Charlie", "Idade": 35}
-
-df = dataframe.dataframe(dicionario1, dicionario2, dicionario3)
+df = metrics.calculate_metrics('data/regions/single_gene/PKD1.bed', 'data/depth/1110366_PKD1.depth')
 st.dataframe(df)
+
+
+#from components import samtools, dataframe
+#import streamlit as st
+#
+#samtools.depth('data/mapped/1110366_PKD1.bam', 'data/regions/genome_exons/UCSC_hg19_exons_modif_canonical_with_difference_chr.bed', 'data/depth/1110366_PKD1.depth', ["PKD2"], ["1", "2", "3","4"])
+## Exemplo de uso:
+#dicionario1 = {"PKD1": 10, "BRCA1": 25}
+#dicionario2 = {"size": 10, "Idade": 30}
+#dicionario3 = {"Nome": "Charlie", "Idade": 35}
+#
+#df = dataframe.dataframe(dicionario1, dicionario2, dicionario3)
+#st.dataframe(df)

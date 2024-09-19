@@ -1,25 +1,23 @@
 import subprocess
+import streamlit as st
 import os
 
-def depth(cram_path, bed_path, depth_dir, gene_selection=None, exon_selection=None):
+def depth(cram_path, bed_path, depth_dir=None, gene_selection=None, exon_selection=None):
     """
     Calculate the depth of coverage for specific exons of genes in a CRAM/BAM file using samtools.
 
     Args:
         cram_path (str): Path to the CRAM/BAM file.
         bed_path (str): Path to the Universal BED file containing exon coordinates.
-        depth_dir (str): Directory to save the depth output file.
+        depth_dir (str, optional): Directory to save the depth output file (optional if storing in session state).
         gene_selection (list or None): List of gene names to include in the depth calculation.
         exon_selection (list or None): List of exon numbers to include in the depth calculation.
 
     Returns:
         None
     """
-    if not os.path.isdir(depth_dir) or not os.path.isfile(cram_path) or not os.path.isfile(bed_path):
-        raise FileNotFoundError("Invalid directory or file path.")
-
-    # Output file path
-    depth_path = os.path.join(depth_dir, f"{os.path.splitext(os.path.basename(cram_path))[0]}.depth")
+    if not os.path.isfile(cram_path) or not os.path.isfile(bed_path):
+        raise FileNotFoundError("Invalid file path.")
 
     # Build awk command to filter BED file
     gene_filter = gene_selection or ''
@@ -39,13 +37,24 @@ def depth(cram_path, bed_path, depth_dir, gene_selection=None, exon_selection=No
         print("No matching regions found.")
         return
 
-    # Run samtools depth using filtered BED output
+    # Store filtered BED content in Streamlit session state
+    st.session_state.filtered_bed = awk_output
+
+    # Run samtools depth using filtered BED content from session state
     samtools_command = ['samtools', 'depth', '-b', '-', cram_path]
     samtools_process = subprocess.Popen(samtools_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
-    samtools_output, _ = samtools_process.communicate(input=awk_output)
+    samtools_output, _ = samtools_process.communicate(input=st.session_state.filtered_bed)
 
-    # Write samtools output to file
-    with open(depth_path, 'w') as output_file:
-        output_file.write(samtools_output)
+    # Store samtools output (.depth content) in Streamlit session state
+    st.session_state.depth_output = samtools_output
 
-    print(f"Output saved to {depth_path}")
+    # Optional: Write samtools output to file if depth_dir is provided
+    # Uncomment this section if file output is needed
+    # if depth_dir:
+    #     depth_path = os.path.join(depth_dir, f"{os.path.splitext(os.path.basename(cram_path))[0]}.depth")
+    #     with open(depth_path, 'w') as output_file:
+    #         output_file.write(samtools_output)
+    #     print(f"Output also saved to {depth_path}")
+
+    print("Depth data stored in session state.")
+
