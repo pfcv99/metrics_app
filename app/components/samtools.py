@@ -2,7 +2,7 @@ import subprocess
 import streamlit as st
 import os
 
-def depth(cram_path, bed_path, depth_dir=None, gene_selection=None, exon_selection=None):
+def depth(cram_path, bed_path, depth_dir='data/depth', gene_selection=None, exon_selection=None):
     """
     Calculate the depth of coverage for specific exons of genes in a CRAM/BAM file using samtools.
 
@@ -48,13 +48,11 @@ def depth(cram_path, bed_path, depth_dir=None, gene_selection=None, exon_selecti
     # Store samtools output (.depth content) in Streamlit session state
     st.session_state.depth_output = samtools_output
 
-    # Optional: Write samtools output to file if depth_dir is provided
-    # Uncomment this section if file output is needed
-    # if depth_dir:
-    #     depth_path = os.path.join(depth_dir, f"{os.path.splitext(os.path.basename(cram_path))[0]}.depth")
-    #     with open(depth_path, 'w') as output_file:
-    #         output_file.write(samtools_output)
-    #     print(f"Output also saved to {depth_path}")
+    if depth_dir:
+        depth_path = os.path.join(depth_dir, f"{os.path.splitext(os.path.basename(cram_path))[0]}.depth")
+        with open(depth_path, 'w') as output_file:
+            output_file.write(samtools_output)
+        print(f"Output also saved to {depth_path}")
 
     print("Depth data stored in session state.")
 

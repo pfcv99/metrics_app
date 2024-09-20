@@ -1,10 +1,7 @@
 import streamlit as st
-from pathlib import Path
 import threading
 import time
-from components import genome, samtools, analysis, samtools_depth_obsolete, bam_cram
-from st_files_connection import FilesConnection
-import subprocess
+from components import genome, analysis, bam_cram
 
 def update_progress_bar():
     progress_text = "Operation in progress. Please wait."
@@ -26,6 +23,7 @@ def session_state_initialize():
         'bam_cram': bam_cram.files(),
         'bam_cram_keys': file_dict.keys(),
         'bam_cram_panel': file_dict.keys(),
+        'bam_cram_selected': None,
         'success': None,
         'exon': [],
         'all_exons': True
@@ -108,7 +106,7 @@ def single_gene():
         bam_cram_files = st.session_state.bam_cram_keys
         st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
-        #st.session_state.bam_cram = st.session_state.bam_cram_value
+        st.session_state.bam_cram_selected = st.session_state.bam_cram_value
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit")
@@ -185,22 +183,27 @@ def gene_panel():
                         "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
                     )
                 )
-        bam_cram_files = st.session_state.bam_cram_files
+        bam_cram_files = st.session_state.bam_cram_keys
         st.multiselect('Select a cram file', bam_cram_files, key="panel_bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
         
         st.session_state.bam_cram_panel = st.session_state.panel_bam_cram_value
-        
+        st.session_state.bam_cram_selected = st.session_state.panel_bam_cram_value
         # Every form must have a submit button.
         panel_submitted = st.button("Submit", key="panel_submit")
         if panel_submitted:
-            if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam_cram_panel:
-                progress_text = "Operation in progress. Please wait."
-                my_bar = st.progress(0, text=progress_text)
-                for percent_complete in range(100):
-                    time.sleep(0.01)
-                    my_bar.progress(percent_complete + 1, text=progress_text)
-                time.sleep(1)
-                my_bar.empty()
+            if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram_panel:
+                
+                
+                # Call the samtools.depth function to calculate the depth of coverage
+                
+                
+                depth_thread = threading.Thread(target=analysis.run_gene_panel())
+                depth_thread.start()
+
+                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
+                update_progress_bar()
+                # Esperar o término do thread de cálculo
+                depth_thread.join()
                 
                 st.success("Form submitted")
                 st.session_state.sucess = True
@@ -250,7 +253,7 @@ def exome():
             bam_cram_files = st.session_state.bam_cram_keys
             st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value_exome", label_visibility="collapsed",placeholder="Select a cram file")
         
-        #st.session_state.bam_cram = st.session_state.bam_cram_value
+        st.session_state.bam_cram_selected = st.session_state.bam_cram_value_exome
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit_exome")

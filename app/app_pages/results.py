@@ -32,6 +32,8 @@ desired_order = [
 ]
 
 with tab1:
+    # Mostrar o nome do arquivo BAM e a data de análise
+    st.write(f"Analyzing BAM file: {st.session_state.bam_cram_selected}")
     if st.session_state.analysis == 'Gene Panel' or 'Exome':
         with st.container():
             st.write("Overview")

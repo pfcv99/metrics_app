@@ -88,6 +88,7 @@ if credentials in [admin_credentials, userA_credentials, userB_credentials]:
 
 # Display navigation
 if page_dict:
+    
     pg = st.navigation({"Account": account_pages} | page_dict)
 else:
     pg = st.navigation([st.Page(login)])
