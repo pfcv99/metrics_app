@@ -298,6 +298,23 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,Painel_SMP-SMD_8bp.bed,1139327.bam
 ,Painel_SMP-SMD_8bp.bed,1139919.bam
 ,BRAF_15.bed,1141833.bam
+,JAK2_12.bed,1141197.bam
+,JAK2_12.bed,1141616.bam
+,JAK2_12.bed,1141959.bam
+,JAK2_12.bed,1142190.bam
+,JAK2_12.bed,1142268.bam
+,GATA1_8bp.bed,1140880.bam
+,MYD88_ex5_8bp.bed,1141055.bam
+,MYD88_ex5_8bp.bed,1141019.bam
+,UBA1_ex3.bed,1141245.bam
+,Painel_SMP-SMD_8bp.bed,1139815.bam
+,Painel_SMP-SMD_8bp.bed,1139830.bam
+,Painel_SMP-SMD_8bp.bed,1140645.bam
+,JAK2_CALR_MPL.bed,1141696.bam
+,JAK2_CALR_MPL.bed,1140899.bam
+,TP53_8bp.bed,1141804.bam
+,TP53_8bp.bed,1141897.bam
+,TP53_8bp.bed,1141898.bam
 
 
 
