@@ -297,6 +297,7 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,JAK2_12.bed,1140771.bam
 ,Painel_SMP-SMD_8bp.bed,1139327.bam
 ,Painel_SMP-SMD_8bp.bed,1139919.bam
+,BRAF_15.bed,1141833.bam
 
 
 
