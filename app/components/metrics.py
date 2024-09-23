@@ -150,6 +150,8 @@ def calculate_metrics():
                     exon_metrics = initialize_metrics()
                     exon_bed_df = gene_bed_df[gene_bed_df['EXON'] == exon_name]
                     exon_depths = pd.Series(dtype=float)
+                    
+                    exon_metrics['Size Coding'] = exon_bed_df['SIZE'].sum()
 
                     for _, row in exon_bed_df.iterrows():
                         start = row['START']
