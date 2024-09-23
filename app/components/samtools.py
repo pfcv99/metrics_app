@@ -19,26 +19,37 @@ def depth(cram_path, bed_path, depth_dir='data/depth', gene_selection=None, exon
     if not os.path.isfile(cram_path) or not os.path.isfile(bed_path):
         raise FileNotFoundError("Invalid file path.")
 
-    # Build awk command to filter BED file
-    gene_filter = gene_selection or ''
-    exon_filter = '|'.join(map(str, exon_selection)) if exon_selection else ''
-    command = (
-        f'awk -v gene_filter="{gene_filter}" -v exon_filter="{exon_filter}" '
-        "'{if ((gene_filter == \"\" || $4 == gene_filter) && (exon_filter == \"\" || $5 ~ exon_filter)) "
-        "{sub(/^chr/, \"\", $1); print}}' "
-        f'{bed_path}'
-    )
+    # Convert gene_selection to a list if it's a string
+    if isinstance(gene_selection, str):
+        gene_selection = [gene_selection]
 
-    # Run awk command and capture output
-    awk_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, text=True)
-    awk_output, _ = awk_process.communicate()
+    # Convert exon_selection to a list of strings if it's a list of numbers
+    if exon_selection is not None:
+        exon_selection = list(map(str, exon_selection))  # Convert exon numbers to strings
 
-    if not awk_output.strip():
-        print("No matching regions found.")
-        return
+    # Read the BED file and filter it using Python logic
+    filtered_bed_lines = []
+    
+    with open(bed_path, 'r') as bed_file:
+        for line in bed_file:
+            columns = line.strip().split('\t')
+            
+            # Ensure the BED file has at least 6 columns (chr, start, end, gene, exon, size)
+            if len(columns) < 6:
+                continue
+            
+            chrom, start, end, gene, exon, size = columns[0], columns[1], columns[2], columns[3], columns[4], columns[5]
+
+            # Apply gene and exon filters (exact match)
+            if (gene_selection is None or gene in gene_selection) and (exon_selection is None or exon in exon_selection):
+                filtered_bed_lines.append(f"{chrom}\t{start}\t{end}\t{gene}\t{exon}\t{size}\n")
+
+    # Check if any filtered BED content was found
+    if not filtered_bed_lines:
+        raise ValueError("No matching regions found for the provided gene or exon selection.")
 
     # Store filtered BED content in Streamlit session state
-    st.session_state.filtered_bed = awk_output
+    st.session_state.filtered_bed = ''.join(filtered_bed_lines)
 
     # Run samtools depth using filtered BED content from session state
     samtools_command = ['samtools', 'depth', '-b', '-', cram_path]
@@ -49,10 +60,7 @@ def depth(cram_path, bed_path, depth_dir='data/depth', gene_selection=None, exon
     st.session_state.depth_output = samtools_output
 
     if depth_dir:
+        # Define the output depth file path based on the CRAM/BAM file name
         depth_path = os.path.join(depth_dir, f"{os.path.splitext(os.path.basename(cram_path))[0]}.depth")
         with open(depth_path, 'w') as output_file:
             output_file.write(samtools_output)
-        print(f"Output also saved to {depth_path}")
-
-    print("Depth data stored in session state.")
-

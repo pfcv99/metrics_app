@@ -17,7 +17,16 @@ def initialize_metrics():
         'Coverage % (30x)': 0,
         'Coverage % (50x)': 0,
         'Coverage % (100x)': 0,
-        'Coverage % (500x)': 0
+        'Coverage % (500x)': 0,
+        'Coverage (>500x)': 0,
+        'Coverage (0-1x)': 0,
+        'Coverage (2-10x)': 0,
+        'Coverage (11-15x)': 0,
+        'Coverage (16-20x)': 0,
+        'Coverage (21-30x)': 0,
+        'Coverage (31-50x)': 0,
+        'Coverage (51-100x)': 0,
+        'Coverage (101-500x)': 0
     }
 
 def calculate_metrics():
@@ -27,7 +36,7 @@ def calculate_metrics():
 
     if not bed_content:
         raise ValueError("No filtered BED content found in session state.")
-
+    
     if not depth_content:
         raise ValueError("No DEPTH content found in session state.")
 
@@ -70,20 +79,56 @@ def calculate_metrics():
     else:
         all_genes_metrics['Size Covered'] = 0
 
-    # Initialize counts for coverage percentages
+    # Initialize counts for coverage percentages and depth intervals
     coverage_thresholds = [1, 10, 15, 20, 30, 50, 100, 500]
     coverage_counts = {threshold: 0 for threshold in coverage_thresholds}
 
-    # Count positions meeting each coverage threshold
+    depth_intervals = {
+        "Coverage (>500x)": 0,
+        "Coverage (101-500x)": 0,
+        "Coverage (51-100x)": 0,
+        "Coverage (31-50x)": 0,
+        "Coverage (21-30x)": 0,
+        "Coverage (16-20x)": 0,
+        "Coverage (11-15x)": 0,
+        "Coverage (2-10x)": 0,
+        "Coverage (0-1x)": 0
+    }
+
+    # Classify depth values into intervals and count positions meeting each coverage threshold
     for depth in all_depths:
+        # Count positions meeting each coverage threshold
         for threshold in coverage_thresholds:
             if depth >= threshold:
                 coverage_counts[threshold] += 1
+
+        # Classify depth into intervals
+        if depth > 500:
+            depth_intervals["Coverage (>500x)"] += 1
+        elif 101 < depth <= 500:
+            depth_intervals["Coverage (101-500x)"] += 1
+        elif 51 <= depth < 101:
+            depth_intervals["Coverage (51-100x)"] += 1
+        elif 31 <= depth < 51:
+            depth_intervals["Coverage (31-50x)"] += 1
+        elif 21 <= depth < 31:
+            depth_intervals["Coverage (21-30x)"] += 1
+        elif 16 <= depth < 21:
+            depth_intervals["Coverage (16-20x)"] += 1
+        elif 11 <= depth < 16:
+            depth_intervals["Coverage (11-15x)"] += 1
+        elif 2 <= depth < 11:
+            depth_intervals["Coverage (2-10x)"] += 1
+        else:
+            depth_intervals["Coverage (0-1x)"] += 1
 
     # Compute coverage percentages
     for threshold in coverage_thresholds:
         percentage = (coverage_counts[threshold] / total_positions) * 100 if total_positions > 0 else 0
         all_genes_metrics[f"Coverage % ({threshold}x)"] = percentage
+
+    # Add depth intervals to the metrics
+    all_genes_metrics.update(depth_intervals)
 
     # Store All Genes metrics
     results['All Genes'] = all_genes_metrics
@@ -116,7 +161,6 @@ def calculate_metrics():
             exon_depths = depth_df[(depth_df['POS'] >= start) & (depth_df['POS'] <= end)]['DEPTH']
             gene_depths = pd.concat([gene_depths, exon_depths], ignore_index=True)
 
-
         total_positions_gene = gene_metrics['Size Coding']
 
         if total_positions_gene == 0:
@@ -131,19 +175,54 @@ def calculate_metrics():
         else:
             gene_metrics['Size Covered'] = 0
 
-        # Initialize counts for coverage percentages
+        # Initialize counts for coverage percentages and depth intervals for the gene
         coverage_counts_gene = {threshold: 0 for threshold in coverage_thresholds}
+        depth_intervals_gene = {
+            "Coverage (>500x)": 0,
+            "Coverage (101-500x)": 0,
+            "Coverage (51-100x)": 0,
+            "Coverage (31-50x)": 0,
+            "Coverage (21-30x)": 0,
+            "Coverage (16-20x)": 0,
+            "Coverage (11-15x)": 0,
+            "Coverage (2-10x)": 0,
+            "Coverage (0-1x)": 0
+        }
 
-        # Count positions meeting each coverage threshold
+        # Count positions meeting each coverage threshold for the gene
         for depth in gene_depths:
+            # Count positions meeting each coverage threshold
             for threshold in coverage_thresholds:
                 if depth >= threshold:
                     coverage_counts_gene[threshold] += 1
 
-        # Compute coverage percentages
+            # Classify depth into intervals for the gene
+            if depth > 500:
+                depth_intervals_gene["Coverage (>500x)"] += 1
+            elif 101 < depth <= 500:
+                depth_intervals_gene["Coverage (101-500x)"] += 1
+            elif 51 <= depth < 101:
+                depth_intervals_gene["Coverage (51-100x)"] += 1
+            elif 31 <= depth < 51:
+                depth_intervals_gene["Coverage (31-50x)"] += 1
+            elif 21 <= depth < 31:
+                depth_intervals_gene["Coverage (21-30x)"] += 1
+            elif 16 <= depth < 21:
+                depth_intervals_gene["Coverage (16-20x)"] += 1
+            elif 11 <= depth < 16:
+                depth_intervals_gene["Coverage (11-15x)"] += 1
+            elif 2 <= depth < 11:
+                depth_intervals_gene["Coverage (2-10x)"] += 1
+            else:
+                depth_intervals_gene["Coverage (0-1x)"] += 1
+
+        # Compute coverage percentages for the gene
         for threshold in coverage_thresholds:
             percentage = (coverage_counts_gene[threshold] / total_positions_gene) * 100 if total_positions_gene > 0 else 0
             gene_metrics[f"Coverage % ({threshold}x)"] = percentage
+
+        # Add depth intervals to the gene metrics
+        gene_metrics.update(depth_intervals_gene)
 
         # Store gene metrics
         genes_data[gene] = gene_metrics
@@ -165,10 +244,9 @@ def calculate_metrics():
 
             exon_depths = pd.Series(dtype=float)
 
-        for start, end in exon_positions:
-            depth_values = depth_df[(depth_df['POS'] >= start) & (depth_df['POS'] <= end)]['DEPTH']
-            exon_depths = pd.concat([exon_depths, depth_values], ignore_index=True)
-
+            for start, end in exon_positions:
+                depth_values = depth_df[(depth_df['POS'] >= start) & (depth_df['POS'] <= end)]['DEPTH']
+                exon_depths = pd.concat([exon_depths, depth_values], ignore_index=True)
 
             total_positions_exon = exon_metrics['Size Coding']
             if total_positions_exon == 0:
@@ -183,32 +261,61 @@ def calculate_metrics():
             else:
                 exon_metrics['Size Covered'] = 0
 
-            # Initialize counts for coverage percentages
+            # Initialize counts for coverage percentages and depth intervals for the exon
             coverage_counts_exon = {threshold: 0 for threshold in coverage_thresholds}
+            depth_intervals_exon = {
+                "Coverage (>500x)": 0,
+                "Coverage (101-500x)": 0,
+                "Coverage (51-100x)": 0,
+                "Coverage (31-50x)": 0,
+                "Coverage (21-30x)": 0,
+                "Coverage (16-20x)": 0,
+                "Coverage (11-15x)": 0,
+                "Coverage (2-10x)": 0,
+                "Coverage (0-1x)": 0
+            }
 
-            # Count positions meeting each coverage threshold
+            # Count positions meeting each coverage threshold for the exon
             for depth in exon_depths:
+                # Count positions meeting each coverage threshold
                 for threshold in coverage_thresholds:
                     if depth >= threshold:
                         coverage_counts_exon[threshold] += 1
 
-            # Compute coverage percentages
+                # Classify depth into intervals for the exon
+                if depth > 500:
+                    depth_intervals_exon["Coverage (>500x)"] += 1
+                elif 101 < depth <= 500:
+                    depth_intervals_exon["Coverage (101-500x)"] += 1
+                elif 51 <= depth < 101:
+                    depth_intervals_exon["Coverage (51-100x)"] += 1
+                elif 31 <= depth < 51:
+                    depth_intervals_exon["Coverage (31-50x)"] += 1
+                elif 21 <= depth < 31:
+                    depth_intervals_exon["Coverage (21-30x)"] += 1
+                elif 16 <= depth < 21:
+                    depth_intervals_exon["Coverage (16-20x)"] += 1
+                elif 11 <= depth < 16:
+                    depth_intervals_exon["Coverage (11-15x)"] += 1
+                elif 2 <= depth < 11:
+                    depth_intervals_exon["Coverage (2-10x)"] += 1
+                else:
+                    depth_intervals_exon["Coverage (0-1x)"] += 1
+
+            # Compute coverage percentages for the exon
             for threshold in coverage_thresholds:
                 percentage = (coverage_counts_exon[threshold] / total_positions_exon) * 100 if total_positions_exon > 0 else 0
                 exon_metrics[f"Coverage % ({threshold}x)"] = percentage
 
+            # Add depth intervals to the exon metrics
+            exon_metrics.update(depth_intervals_exon)
+
             # Store exon metrics
             exons_data[(gene, exon)] = exon_metrics
 
-    # Now create DataFrames for All Genes, Genes, and Exons
-
-    # All Genes
+    # Create DataFrames for All Genes, Genes, and Exons
     all_genes_df = pd.DataFrame([results['All Genes']])
-
-    # Genes data
     genes_data_df = pd.DataFrame.from_dict(genes_data, orient='index')
-
-    # Exons data
     exons_data_df = pd.DataFrame.from_dict(exons_data, orient='index')
     exons_data_df.index.names = ['GENE', 'EXON']
 
@@ -216,7 +323,8 @@ def calculate_metrics():
     desired_order = [
         'Size Coding', 'Size Covered', 'Average Read Depth', 'Min Read Depth', 'Max Read Depth',
         'Coverage % (1x)', 'Coverage % (10x)', 'Coverage % (15x)', 'Coverage % (20x)',
-        'Coverage % (30x)', 'Coverage % (50x)', 'Coverage % (100x)', 'Coverage % (500x)'
+        'Coverage % (30x)', 'Coverage % (50x)', 'Coverage % (100x)', 'Coverage % (500x)',
+        'Coverage (>500x)'
     ]
 
     all_genes_df = all_genes_df[desired_order]
