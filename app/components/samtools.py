@@ -32,7 +32,6 @@ def depth(cram_path, bed_path, depth_dir='data/depth', gene_selection=None, exon
         # Load the original BED content directly
         with open(bed_path, 'r') as bed_file:
             st.session_state.filtered_bed = bed_file.read()  # Store original BED content in session state
-
     else:
         # Otherwise, filter the BED file based on the gene and exon selection
         filtered_bed_lines = []
@@ -59,16 +58,22 @@ def depth(cram_path, bed_path, depth_dir='data/depth', gene_selection=None, exon
         # Store filtered BED content in Streamlit session state
         st.session_state.filtered_bed = ''.join(filtered_bed_lines)
 
+    # Create a unique key for the output based on the CRAM/BAM file name
+    output_key = os.path.splitext(os.path.basename(cram_path))[0]
+
     # Run samtools depth using the BED content (either original or filtered) from session state
     samtools_command = ['samtools', 'depth', '-b', '-', cram_path]
     samtools_process = subprocess.Popen(samtools_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     samtools_output, _ = samtools_process.communicate(input=st.session_state.filtered_bed)
 
-    # Store samtools output (.depth content) in Streamlit session state
-    st.session_state.depth_output = samtools_output
+    # Store samtools output (.depth content) in Streamlit session state as a dictionary
+    if 'depth_output' not in st.session_state:
+        st.session_state.depth_output = {}
 
+    st.session_state.depth_output[output_key] = samtools_output
+    
     if depth_dir:
         # Define the output depth file path based on the CRAM/BAM file name
-        depth_path = os.path.join(depth_dir, f"{os.path.splitext(os.path.basename(cram_path))[0]}.depth")
+        depth_path = os.path.join(depth_dir, f"{output_key}.depth")
         with open(depth_path, 'w') as output_file:
             output_file.write(samtools_output)

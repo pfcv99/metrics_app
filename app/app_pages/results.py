@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from components import metrics
 import numpy as np
-import plotly.figure_factory as ff
 
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
@@ -18,9 +17,6 @@ def select_all_columns(select_all, columns, key_prefix):
         for col in cols:
             st.session_state[f"{key_prefix}_col_{col}"] = select_all
 
-# Call the calculate_metrics function and store results
-all_genes, genes_data, exons_data = metrics.calculate_metrics()
-
 # Desired order of metrics
 desired_order = [
     'Size Coding', 'Size Covered', 'Average Read Depth', 'Min Read Depth', 'Max Read Depth',
@@ -29,6 +25,53 @@ desired_order = [
     'Coverage % (1x)', 'Coverage % (10x)', 'Coverage % (15x)', 'Coverage % (20x)',
     'Coverage % (30x)', 'Coverage % (50x)', 'Coverage % (100x)', 'Coverage % (500x)'
 ]
+
+# Call the calculate_metrics function and store results for multiple depth files
+results = metrics.calculate_metrics()
+file_names = list(results.keys())
+
+# Prepare All Genes DataFrame
+all_metrics = desired_order
+all_genes_df = pd.DataFrame({'Metric': all_metrics})
+
+for file_key in results:
+    all_genes_metrics = results[file_key].get('All Genes', {})
+    metrics_values = [all_genes_metrics.get(metric, np.nan) for metric in all_metrics]
+    all_genes_df[file_key] = metrics_values
+
+# Prepare Genes DataFrames
+all_genes_set = set()
+for file_key in results:
+    genes = results[file_key].get('Genes', {}).keys()
+    all_genes_set.update(genes)
+genes_list = sorted(all_genes_set)
+
+genes_dfs = {}
+for gene in genes_list:
+    gene_metrics_df = pd.DataFrame({'Metric': desired_order})
+    for file_key in results:
+        gene_metrics = results[file_key].get('Genes', {}).get(gene, {})
+        metrics_values = [gene_metrics.get(metric, np.nan) for metric in desired_order]
+        gene_metrics_df[file_key] = metrics_values
+    genes_dfs[gene] = gene_metrics_df
+
+# Prepare Exons DataFrames
+exons_dfs = {}
+for gene in genes_list:
+    exons_dfs[gene] = {}
+    exons_set = set()
+    for file_key in results:
+        exons = results[file_key].get('Exons', {}).get(gene, {}).keys()
+        exons_set.update(exons)
+    exons_list = sorted(exons_set)
+
+    for exon in exons_list:
+        exon_metrics_df = pd.DataFrame({'Metric': desired_order})
+        for file_key in results:
+            exon_metrics = results[file_key].get('Exons', {}).get(gene, {}).get(exon, {})
+            metrics_values = [exon_metrics.get(metric, np.nan) for metric in desired_order]
+            exon_metrics_df[file_key] = metrics_values
+        exons_dfs[gene][exon] = exon_metrics_df
 
 with tab1:
     st.write(f"Analyzing BAM file: {st.session_state.bam_cram_selected}")
@@ -70,30 +113,23 @@ with tab1:
                         for col in columns[section]:
                             st.checkbox(col, key=f"tab1_col_{col}")
 
-            mandatory_columns = ["Date", "BAM", "Region"]
-
             # Selecting checked columns
             selected_columns = [col for section in columns.values() for col in section if st.session_state.get(f"tab1_col_{col}", False)]
-            final_columns = mandatory_columns + selected_columns
+            final_columns = selected_columns
 
-            # Ensure the ordering of columns according to desired order
-            final_columns = [col for col in desired_order if col in final_columns]
-
-            # Filtering data based on selected columns
-            filtered_data = {col: all_genes.iloc[0].get(col, None) for col in final_columns}
-            df = pd.DataFrame([filtered_data]).melt(var_name='Metric', value_name='Value')
+            # Filter the DataFrame
+            metrics_df = all_genes_df[all_genes_df['Metric'].isin(final_columns)].reset_index(drop=True)
 
             # Display the DataFrame
-            st.dataframe(df, hide_index=True, height=738, width=220)
+            st.dataframe(metrics_df, hide_index=True, height=738, width=800)
+
     elif st.session_state.analysis == 'Single Gene':
         st.write('Test')
 
 with tab2:
     with st.container():
-        gene = st.selectbox("Select Gene", genes_data.index, key="gene_selectbox")
-
-        # Filter metrics for selected gene
-        df = genes_data.loc[gene].reset_index().rename(columns={'index': 'Metric', gene: 'Value'})
+        gene = st.selectbox("Select Gene", genes_list, key="gene_selectbox")
+        gene_metrics_df = genes_dfs[gene]
 
         # Filters for tab2
         columns = {
@@ -129,21 +165,17 @@ with tab2:
 
         # Filter the DataFrame based on selected columns
         selected_columns = [col for section in columns.values() for col in section if st.session_state.get(f"tab2_col_{col}", False)]
-        df = df[df['Metric'].isin(selected_columns)].reset_index(drop=True)
+        df = gene_metrics_df[gene_metrics_df['Metric'].isin(selected_columns)].reset_index(drop=True)
 
         # Display the DataFrame
-        st.dataframe(df, hide_index=True, height=738, width=205)
+        st.dataframe(df, hide_index=True, height=738, width=800)
 
 with tab3:
     with st.container():
-        st.write("Exon Detail")
-
-    with st.container():
-        gene = st.selectbox("Select Gene", exons_data.index.get_level_values(0).unique(), key="exon_gene_selectbox")
-        exon = st.selectbox("Select Exon", exons_data.loc[gene].index, key="exon_selectbox")
-
-        # Show metrics for the selected exon
-        df = exons_data.loc[(gene, exon)].reset_index().rename(columns={'index': 'Metric', (gene, exon): 'Value'})
+        gene = st.selectbox("Select Gene", genes_list, key="exon_gene_selectbox")
+        exons_list = sorted(exons_dfs[gene].keys())
+        exon = st.selectbox("Select Exon", exons_list, key="exon_selectbox")
+        exon_metrics_df = exons_dfs[gene][exon]
 
         # Filters for tab3
         columns = {
@@ -179,7 +211,7 @@ with tab3:
 
         # Filter the DataFrame based on selected columns
         selected_columns = [col for section in columns.values() for col in section if st.session_state.get(f"tab3_col_{col}", False)]
-        df = df[df['Metric'].isin(selected_columns)].reset_index(drop=True)
+        df = exon_metrics_df[exon_metrics_df['Metric'].isin(selected_columns)].reset_index(drop=True)
 
         # Display the DataFrame
-        st.dataframe(df, hide_index=True, height=772, width=205)
+        st.dataframe(df, hide_index=True, height=738, width=800)
