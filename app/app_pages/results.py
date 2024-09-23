@@ -84,7 +84,7 @@ with tab1:
             df = pd.DataFrame([filtered_data]).melt(var_name='Metric', value_name='Value')
 
             # Display the DataFrame
-            st.dataframe(df, hide_index=True, height=738, width=205)
+            st.dataframe(df, hide_index=True, height=738, width=220)
     elif st.session_state.analysis == 'Single Gene':
         st.write('Test')
 

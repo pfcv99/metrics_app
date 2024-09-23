@@ -104,9 +104,9 @@ def single_gene():
                     )
                 )
         bam_cram_files = st.session_state.bam_cram_keys
-        st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
+        st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_single_gene", label_visibility="collapsed",placeholder="Select a cram file")
         
-        st.session_state.bam_cram_selected = st.session_state.bam_cram_value
+        st.session_state.bam_cram_selected = st.session_state.bam_cram_single_gene
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit")
@@ -129,89 +129,125 @@ def single_gene():
                 st.session_state.sucess = True
                 time.sleep(2)
             
-                st.switch_page("app_pages/results.py")
+                if st.session_state.depth_output:
+                    st.switch_page("app_pages/results.py")
+                else:
+                    st.warning('No depth content found! Please check assembly!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
 
 def gene_panel():
     session_state_initialize()
     with st.container(border=True):
-                
         st.markdown(
-                    "#### Genome Assembly",
-                    help=(
-                        "**Please select the genome assembly.**\n"
-                        "- The selection of a :red[genome assembly] is crucial for analyzing the sequencing data.\n"
-                        "- A :red[genome assembly] defines the reference genome used for aligning the sequencing reads.\n"
-                        "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
-                    )
-                )
+            "#### Genome Assembly",
+            help=(
+                "**Please select the genome assembly.**\n"
+                "- The selection of a :red[genome assembly] is crucial for analyzing the sequencing data.\n"
+                "- A :red[genome assembly] defines the reference genome used for aligning the sequencing reads.\n"
+                "- Ensure that the selected :red[genome assembly] corresponds to the reference genome used for aligning the sequencing reads."
+            )
+        )
         st.radio(
-                "Select an option",
-                ["GRCh37/hg19", "GRCh38/hg38"],
-                key="panel_assembly_value",
-                label_visibility="visible",
-                disabled=False,
-                horizontal=True,
-                index = 1
-                )       
-        st.markdown(
-                        "#### Gene Panel of Interest",
-                        help=(
-                            "**Please select a Gene Panel of Interest.**\n"
-                            "- The selection of a :red[Gene of Interest] is     crucial for calculating the :red[average read depth].   \n"
-                            "- A :red[Gene of Interest] defines the genomic     region of interest.\n"
-                            "- The :red[read depth] will be calculated  specifically for these region.\n"
-                            "- Ensure that the selected :red[Gene of Interest]  corresponds to the genomic region you want to analyze.   "
-                        )
-                    )
+            "Select an option",
+            ["GRCh37/hg19", "GRCh38/hg38"],
+            key="panel_assembly_value",
+            label_visibility="visible",
+            disabled=False,
+            horizontal=True,
+        )
+        
         st.session_state.assembly = st.session_state.panel_assembly_value
-        # Convert all elements to strings before sorting
-        panels = genome.panel()['Panel Name PT (Klims)'].unique().tolist() #ISTO NÃO ESTÁ A FUNCIONAR CORRETAMENTE
-        panel_list = sorted([str(panel) for panel in panels]) #NEM ISTO. NÃO ATUALIZA DE FORMA DINÂMICA. ESTÁ SEMPRE A MOSTRAR O GRCh37/hg19
-        # Now use the sorted list in the selectbox
-        st.selectbox('Select a Gene Panel of Interest', panel_list, key="panel_region_value", index=None, label_visibility="collapsed", placeholder="Select a Gene Panel of Interest")
-        
-        st.session_state.region = st.session_state.panel_region_value
         
         st.markdown(
-                    "#### cram file",
-                    help=(
-                        "**Please select a cram file.**\n"
-                        "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
-                        "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
-                        "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
-                    )
-                )
+            "#### Gene Panel of Interest",
+            help=(
+                "**Please select a Gene Panel of Interest.**\n"
+                "- The selection of a :red[Gene of Interest] is crucial for calculating the :red[average read depth].\n"
+                "- A :red[Gene of Interest] defines the genomic region of interest.\n"
+                "- The :red[read depth] will be calculated specifically for this region.\n"
+                "- Ensure that the selected :red[Gene of Interest] corresponds to the genomic region you want to analyze."
+            )
+        )
+        
+        # Get the panel list and sort it
+        panels_df = genome.panel()  # Assuming this is your DataFrame
+        panels = panels_df['Panel Name PT (Klims)'].unique().tolist()
+        panel_list = sorted([str(panel) for panel in panels])
+        
+        # Panel selectbox
+        selected_panel = st.selectbox(
+            'Select a Gene Panel of Interest', 
+            panel_list, 
+            key="panel_region_value", 
+            index=None, 
+            label_visibility="collapsed", 
+            placeholder="Select a Gene Panel of Interest"
+        )
+        
+        # Filter the DataFrame for the selected panel
+        filtered_panel = panels_df[panels_df['Panel Name PT (Klims)'] == selected_panel]
+
+        # Check if any rows match the selected panel
+        if not filtered_panel.empty:
+            # Get the 'Genes' column, split the string into a list of genes
+            selected_genes_string = filtered_panel['Genes'].values[0]  # Get the first matching string
+            selected_genes = selected_genes_string.split(',')  # Split the string by commas to create a list of genes
+        else:
+            # If no matching rows, return an empty list
+            selected_genes = []
+
+        # Store the list of genes (or empty list) in session state
+        st.session_state.region = selected_genes
+        
+        st.markdown(
+            "#### cram file",
+            help=(
+                "**Please select a cram file.**\n"
+                "- The selection of a :red[cram file] is essential for analyzing the sequencing data.\n"
+                "- A :red[cram file] contains aligned sequencing reads on the reference genome.\n"
+                "- Ensure that the selected :red[cram file] corresponds to the sequencing data you want to analyze."
+            )
+        )
+        
+        # Cram file selection
         bam_cram_files = st.session_state.bam_cram_keys
-        st.multiselect('Select a cram file', bam_cram_files, key="panel_bam_cram_value", label_visibility="collapsed",placeholder="Select a cram file")
+        st.multiselect(
+            'Select a cram file', 
+            bam_cram_files, 
+            key="panel_bam_cram_value", 
+            label_visibility="collapsed", 
+            placeholder="Select a cram file"
+        )
         
         st.session_state.bam_cram_panel = st.session_state.panel_bam_cram_value
         st.session_state.bam_cram_selected = st.session_state.panel_bam_cram_value
-        # Every form must have a submit button.
+        
+        # Submit button
         panel_submitted = st.button("Submit", key="panel_submit")
         if panel_submitted:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram_panel:
-                
-                
                 # Call the samtools.depth function to calculate the depth of coverage
-                
-                
                 depth_thread = threading.Thread(target=analysis.run_gene_panel())
                 depth_thread.start()
 
-                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
+                # Update the progress bar while calculation is ongoing
                 update_progress_bar()
-                # Esperar o término do thread de cálculo
+
+                # Wait for the calculation thread to finish
                 depth_thread.join()
-                
+
                 st.success("Form submitted")
-                st.session_state.sucess = True
+                st.session_state.success = True
                 time.sleep(2)
-            
-                st.switch_page("app_pages/results.py")
+
+                if st.session_state.depth_output:
+                    st.switch_page("app_pages/results.py")
+                else:
+                    st.warning('No depth content found! Please check assembly!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
+
                 
 def exome():
     session_state_initialize()
@@ -258,7 +294,7 @@ def exome():
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit_exome")
         if submitted:
-            if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram:
+            if st.session_state.analysis and st.session_state.assembly_exome and st.session_state.bam_cram_value_exome:
                 
                 
                 # Call the samtools.depth function to calculate the depth of coverage
@@ -275,7 +311,9 @@ def exome():
                 st.success("Form submitted")
                 st.session_state.sucess = True
                 time.sleep(2)
-            
-                st.switch_page("app_pages/results.py")
+                if st.session_state.depth_output:
+                    st.switch_page("app_pages/results.py")
+                else:
+                    st.warning('No depth content found! Please check assembly!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
