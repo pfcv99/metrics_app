@@ -36,7 +36,7 @@ def calculate_metrics():
 
     if not bed_content:
         raise ValueError("No filtered BED content found in session state.")
-    
+
     if not depth_dict:
         raise ValueError("No depth data found in session state.")
 
@@ -97,14 +97,14 @@ def calculate_metrics():
             # Add depth intervals
             depth_intervals = {
                 "Coverage (>500x)": (all_depths > 500).sum(),
-                "Coverage (101-500x)": ((all_depths > 101) & (all_depths <= 500)).sum(),
-                "Coverage (51-100x)": ((all_depths >= 51) & (all_depths < 101)).sum(),
-                "Coverage (31-50x)": ((all_depths >= 31) & (all_depths < 51)).sum(),
-                "Coverage (21-30x)": ((all_depths >= 21) & (all_depths < 31)).sum(),
-                "Coverage (16-20x)": ((all_depths >= 16) & (all_depths < 21)).sum(),
-                "Coverage (11-15x)": ((all_depths >= 11) & (all_depths < 16)).sum(),
-                "Coverage (2-10x)": ((all_depths >= 2) & (all_depths < 11)).sum(),
-                "Coverage (0-1x)": (all_depths < 2).sum(),
+                "Coverage (101-500x)": ((all_depths > 100) & (all_depths <= 500)).sum(),
+                "Coverage (51-100x)": ((all_depths >= 51) & (all_depths <= 100)).sum(),
+                "Coverage (31-50x)": ((all_depths >= 31) & (all_depths <= 50)).sum(),
+                "Coverage (21-30x)": ((all_depths >= 21) & (all_depths <= 30)).sum(),
+                "Coverage (16-20x)": ((all_depths >= 16) & (all_depths <= 20)).sum(),
+                "Coverage (11-15x)": ((all_depths >= 11) & (all_depths <= 15)).sum(),
+                "Coverage (2-10x)": ((all_depths >= 2) & (all_depths <= 10)).sum(),
+                "Coverage (0-1x)": (all_depths <= 1).sum(),
             }
 
             all_genes_metrics.update(depth_intervals)
@@ -138,10 +138,25 @@ def calculate_metrics():
                     gene_metrics['Average Read Depth'] = 0
                     gene_metrics['Size Covered'] = 0
 
-                # Initialize coverage metrics for gene
+                # Calculate coverage percentages
                 coverage_counts_gene = {threshold: (gene_depths >= threshold).sum() for threshold in coverage_thresholds}
                 for threshold in coverage_thresholds:
                     gene_metrics[f"Coverage % ({threshold}x)"] = (coverage_counts_gene[threshold] / gene_metrics['Size Covered']) * 100 if gene_metrics['Size Covered'] > 0 else 0
+
+                # Add depth intervals for gene
+                depth_intervals_gene = {
+                    "Coverage (>500x)": (gene_depths > 500).sum(),
+                    "Coverage (101-500x)": ((gene_depths > 100) & (gene_depths <= 500)).sum(),
+                    "Coverage (51-100x)": ((gene_depths >= 51) & (gene_depths <= 100)).sum(),
+                    "Coverage (31-50x)": ((gene_depths >= 31) & (gene_depths <= 50)).sum(),
+                    "Coverage (21-30x)": ((gene_depths >= 21) & (gene_depths <= 30)).sum(),
+                    "Coverage (16-20x)": ((gene_depths >= 16) & (gene_depths <= 20)).sum(),
+                    "Coverage (11-15x)": ((gene_depths >= 11) & (gene_depths <= 15)).sum(),
+                    "Coverage (2-10x)": ((gene_depths >= 2) & (gene_depths <= 10)).sum(),
+                    "Coverage (0-1x)": (gene_depths <= 1).sum(),
+                }
+
+                gene_metrics.update(depth_intervals_gene)
 
                 genes_data[gene] = gene_metrics
 
@@ -167,9 +182,25 @@ def calculate_metrics():
                         exon_metrics['Average Read Depth'] = 0
                         exon_metrics['Size Covered'] = 0
 
+                    # Calculate coverage percentages for exon
                     coverage_counts_exon = {threshold: (exon_depths >= threshold).sum() for threshold in coverage_thresholds}
                     for threshold in coverage_thresholds:
                         exon_metrics[f"Coverage % ({threshold}x)"] = (coverage_counts_exon[threshold] / exon_metrics['Size Covered']) * 100 if exon_metrics['Size Covered'] > 0 else 0
+
+                    # Add depth intervals for exon
+                    depth_intervals_exon = {
+                        "Coverage (>500x)": (exon_depths > 500).sum(),
+                        "Coverage (101-500x)": ((exon_depths > 100) & (exon_depths <= 500)).sum(),
+                        "Coverage (51-100x)": ((exon_depths >= 51) & (exon_depths <= 100)).sum(),
+                        "Coverage (31-50x)": ((exon_depths >= 31) & (exon_depths <= 50)).sum(),
+                        "Coverage (21-30x)": ((exon_depths >= 21) & (exon_depths <= 30)).sum(),
+                        "Coverage (16-20x)": ((exon_depths >= 16) & (exon_depths <= 20)).sum(),
+                        "Coverage (11-15x)": ((exon_depths >= 11) & (exon_depths <= 15)).sum(),
+                        "Coverage (2-10x)": ((exon_depths >= 2) & (exon_depths <= 10)).sum(),
+                        "Coverage (0-1x)": (exon_depths <= 1).sum(),
+                    }
+
+                    exon_metrics.update(depth_intervals_exon)
 
                     # Store the metrics
                     if gene not in exons_data:
