@@ -26,7 +26,7 @@ def session_state_initialize():
         'bam_cram_selected': None,
         'success': None,
         'exon': [],
-        'all_exons': True
+        'all_exons': True,
     }
     
     for key, value in defaults.items():
@@ -240,7 +240,6 @@ def gene_panel():
                 st.success("Form submitted")
                 st.session_state.success = True
                 time.sleep(2)
-                st.write(st.session_state.depth_output)
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")
                 else:

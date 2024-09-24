@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from components import metrics
 import numpy as np
+import io
+from weasyprint import HTML
+import base64
 
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
@@ -9,13 +12,6 @@ st.logo(sidebar_logo)
 st.logo(main_body_logo)
 
 st.title("Results")
-tab1, tab2, tab3 = st.tabs(["Overview", "Gene Detail", "Exon Detail"])
-
-def select_all_metrics(select_all, metrics_dict, key_prefix):
-    """Function to select or deselect all metrics."""
-    for section, metrics_list in metrics_dict.items():
-        for metric in metrics_list:
-            st.session_state[f"{key_prefix}_metric_{metric}"] = select_all
 
 # Desired order of metrics
 desired_order = [
@@ -73,6 +69,95 @@ for gene in genes_list:
             exon_metrics_df[file_key] = metrics_values
         exons_dfs[gene][exon] = exon_metrics_df
 
+# Download Report section
+with st.popover('Download Report'):
+
+    if len(file_names) > 1:
+        # If there are multiple samples, allow the user to select one
+        selected_sample = st.selectbox("Select Sample", file_names)
+    else:
+        # If there's only one sample, select it by default
+        selected_sample = file_names[0]
+        
+        st.write(f'Download {selected_sample} Report')
+    # Generate PDF report for the selected sample
+    # Build an HTML string
+    html_content = """
+    <html>
+    <head>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 10pt;
+    }
+    th, td {
+        text-align: left;
+        padding: 8px;
+        border: 1px solid #dddddd;
+    }
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    h2, h3 {
+        color: #2F5496;
+    }
+    </style>
+    </head>
+    <body>
+    """
+    # Add Unilabs logo
+    # Encode the logo image to base64
+    with open(sidebar_logo, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode()
+    html_content += f'<img src="data:image/png;base64,{encoded_string}" alt="Unilabs Logo" style="width:200px;"><br><br>'
+    # Add Overview DataFrame for the selected sample
+    html_content += f'<h2>Overview - Sample: {selected_sample}</h2>'
+    if st.session_state.analysis in ['Gene Panel']:
+        html_content += f'<h2>Gene Panel: </h2>'
+        overview_df = all_genes_df[['Metric', selected_sample]]
+        html_content += overview_df.to_html(index=False)
+    if st.session_state.analysis in ['Exome']:
+        overview_df = all_genes_df[['Metric', selected_sample]]
+        html_content += overview_df.to_html(index=False)
+    elif st.session_state.analysis in ['Single Gene']:
+        # Add Gene DataFrames for the selected sample
+        for gene_name, gene_df in genes_dfs.items():
+            gene_sample_df = gene_df[['Metric', selected_sample]]
+            if gene_sample_df[selected_sample].notna().any():
+                html_content += f'<h2>Gene: {gene_name}</h2>'
+                html_content += gene_sample_df.to_html(index=False)
+        # Add Exon DataFrames for the selected sample
+        for gene_name, exons_dict in exons_dfs.items():
+            for exon_name, exon_df in exons_dict.items():
+                exon_sample_df = exon_df[['Metric', selected_sample]]
+                if exon_sample_df[selected_sample].notna().any():
+                    html_content += f'<h3>Exon: {exon_name} (Gene: {gene_name})</h3>'
+                    html_content += exon_sample_df.to_html(index=False)
+    html_content += '</body></html>'
+    # Convert HTML to PDF using WeasyPrint
+    html_obj = HTML(string=html_content)
+    pdf_bytes = html_obj.write_pdf()
+    # Provide download button
+    st.download_button(
+        label="Download PDF Report",
+        data=pdf_bytes,
+        file_name=f'report_{selected_sample}.pdf',
+        mime='application/pdf'
+    )
+
+# Existing code for tabs and data display
+tab1, tab2, tab3 = st.tabs(["Overview", "Gene Detail", "Exon Detail"])
+
+def select_all_metrics(select_all, metrics_dict, key_prefix):
+    """Function to select or deselect all metrics."""
+    for section, metrics_list in metrics_dict.items():
+        for metric in metrics_list:
+            st.session_state[f"{key_prefix}_metric_{metric}"] = select_all
+
 with tab1:
     st.write(f"Analyzing BAM file: {st.session_state.bam_cram_selected}")
 
@@ -96,7 +181,7 @@ with tab1:
                     if f"tab1_metric_{metric}" not in st.session_state:
                         st.session_state[f"tab1_metric_{metric}"] = True
 
-            with st.popover("Filters"):
+            with st.expander("Filters"):
                 st.subheader("Select Metrics to Display")
 
                 all_selected = all(
@@ -107,7 +192,7 @@ with tab1:
 
                 if st.button("Select All" if not all_selected else "Deselect All", key="tab1_select_all"):
                     select_all_metrics(not all_selected, metrics_dict, "tab1")
-                    st.rerun()
+                    st.experimental_rerun()
 
                 col1, col2, col3 = st.columns(3)
                 metrics_keys = list(metrics_dict.keys())
@@ -156,7 +241,7 @@ with tab2:
                     if f"tab2_metric_{metric}" not in st.session_state:
                         st.session_state[f"tab2_metric_{metric}"] = True
 
-            with st.popover("Filters"):
+            with st.expander("Filters"):
                 st.subheader("Select Metrics to Display")
 
                 all_selected = all(
@@ -167,7 +252,7 @@ with tab2:
 
                 if st.button("Select All" if not all_selected else "Deselect All", key="tab2_select_all"):
                     select_all_metrics(not all_selected, metrics_dict, "tab2")
-                    st.rerun()
+                    st.experimental_rerun()
 
                 col1, col2, col3 = st.columns(3)
                 metrics_keys = list(metrics_dict.keys())
@@ -218,7 +303,7 @@ with tab3:
                         if f"tab3_metric_{metric}" not in st.session_state:
                             st.session_state[f"tab3_metric_{metric}"] = True
 
-                with st.popover("Filters"):
+                with st.expander("Filters"):
                     st.subheader("Select Metrics to Display")
 
                     all_selected = all(
@@ -229,7 +314,7 @@ with tab3:
 
                     if st.button("Select All" if not all_selected else "Deselect All", key="tab3_select_all"):
                         select_all_metrics(not all_selected, metrics_dict, "tab3")
-                        st.rerun()
+                        st.experimental_rerun()
 
                     col1, col2, col3 = st.columns(3)
                     metrics_keys = list(metrics_dict.keys())
