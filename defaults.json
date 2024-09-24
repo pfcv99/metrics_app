@@ -1,0 +1,1 @@
+{"GRCh38_hg38": "data/regions/genome_exons/hg38_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.bed", "GRCh37_hg19": "data/regions/genome_exons/hg19_Twist_ILMN_Exome_2.0_Plus_Panel_annotated_modif_nochr.BED", "depth_single_gene": "data/depth/single_gene", "depth_gene_panel": "data/depth/gene_panel", "depth_exome": "data/depth/exome", "bam_cram_path": "./data/mapped"}

@@ -60,13 +60,12 @@ form = st.Page("app_pages/query.py", title="Query", icon=":material/analytics:",
 results = st.Page("app_pages/results.py", title="Results", icon=":material/table_chart_view:")
 gene_panel_creator = st.Page("app_pages/gene_panel_creator.py", title="Gene panel creator", icon=":material/edit_note:",default=(user == "userB" and password == "userB"))
 about = st.Page("app_pages/3_About.py", title="About", icon=":material/info:")
-test = st.Page("app_pages/test.py", title="Test")
 
 # Group pages
 account_pages = [logout_page, settings]
 metrics_pages = [form, results]
 panel_builder_pages = [gene_panel_creator]
-about_pages = [about, test]
+about_pages = [about]
 
 # Set up credentials
 credentials = (user, password)

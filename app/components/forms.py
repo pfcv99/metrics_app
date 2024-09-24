@@ -27,6 +27,8 @@ def session_state_initialize():
         'success': None,
         'exon': [],
         'all_exons': True,
+        'panel_name': None, 
+        'submit': False
     }
     
     for key, value in defaults.items():
@@ -109,25 +111,25 @@ def single_gene():
         st.session_state.bam_cram_selected = st.session_state.bam_cram_single_gene
         
         # Every form must have a submit button.
-        submitted = st.button("Submit", key="submit")
-        if submitted:
+        submitted_single_gene = st.button("Submit", key="submit_single_gene")
+        st.session_state.submit = submitted_single_gene
+        if submitted_single_gene:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam_cram:
-                
+                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
+                update_progress_bar()              
                 
                 # Call the samtools.depth function to calculate the depth of coverage
-                
                 
                 depth_thread = threading.Thread(target=analysis.run_single_gene())
                 depth_thread.start()
 
-                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
-                update_progress_bar()
+                
                 # Esperar o término do thread de cálculo
                 depth_thread.join()
                 
                 st.success("Form submitted")
                 st.session_state.sucess = True
-                time.sleep(2)
+                time.sleep(1)
             
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")
@@ -187,7 +189,7 @@ def gene_panel():
         
         # Filter the DataFrame for the selected panel
         filtered_panel = panels_df[panels_df['Panel Name PT (Klims)'] == selected_panel]
-
+        st.session_state.panel_name = selected_panel
         # Check if any rows match the selected panel
         if not filtered_panel.empty:
             # Get the 'Genes' column, split the string into a list of genes
@@ -224,22 +226,25 @@ def gene_panel():
         st.session_state.bam_cram_selected = st.session_state.panel_bam_cram_value
         
         # Submit button
-        panel_submitted = st.button("Submit", key="panel_submit")
-        if panel_submitted:
+        submitted_gene_panel = st.button("Submit", key="panel_submit")
+        st.session_state.submit = submitted_gene_panel
+        if submitted_gene_panel:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram_panel:
+                # Update the progress bar while calculation is ongoing
+                update_progress_bar()
+                
                 # Call the samtools.depth function to calculate the depth of coverage
                 depth_thread = threading.Thread(target=analysis.run_gene_panel())
                 depth_thread.start()
 
-                # Update the progress bar while calculation is ongoing
-                update_progress_bar()
+
 
                 # Wait for the calculation thread to finish
                 depth_thread.join()
 
                 st.success("Form submitted")
                 st.session_state.success = True
-                time.sleep(2)
+                time.sleep(0.5)
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")
                 else:
@@ -292,19 +297,19 @@ def exome():
         st.session_state.bam_cram_exome = st.session_state.bam_cram_value_exome
         
         # Every form must have a submit button.
-        submitted = st.button("Submit", key="submit_exome")
-        if submitted:
+        submitted_exome = st.button("Submit", key="submit_exome")
+        st.session_state.submit = submitted_exome
+        if submitted_exome:
             if st.session_state.analysis and st.session_state.assembly_exome and st.session_state.bam_cram_value_exome:
-                
+                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
+                update_progress_bar()                
                 
                 # Call the samtools.depth function to calculate the depth of coverage
-                
                 
                 depth_thread = threading.Thread(target=analysis.run_exome())
                 depth_thread.start()
 
-                # Atualizar a barra de progresso enquanto o cálculo está a decorrer
-                update_progress_bar()
+
                 # Esperar o término do thread de cálculo
                 depth_thread.join()
                 

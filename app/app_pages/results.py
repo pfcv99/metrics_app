@@ -5,6 +5,7 @@ import numpy as np
 import io
 from weasyprint import HTML
 import base64
+import datetime
 
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
@@ -70,8 +71,7 @@ for gene in genes_list:
         exons_dfs[gene][exon] = exon_metrics_df
 
 # Download Report section
-with st.popover('Download Report'):
-
+with st.status("Building the report...")as status:
     if len(file_names) > 1:
         # If there are multiple samples, allow the user to select one
         selected_sample = st.selectbox("Select Sample", file_names)
@@ -79,8 +79,11 @@ with st.popover('Download Report'):
         # If there's only one sample, select it by default
         selected_sample = file_names[0]
         
-        st.write(f'Download {selected_sample} Report')
+        st.write(f'Download {selected_sample} report file (.pdf)')
     # Generate PDF report for the selected sample
+    # Get the current date and time
+    report_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
     # Build an HTML string
     html_content = """
     <html>
@@ -114,13 +117,16 @@ with st.popover('Download Report'):
     with open(sidebar_logo, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
     html_content += f'<img src="data:image/png;base64,{encoded_string}" alt="Unilabs Logo" style="width:200px;"><br><br>'
+    # Add report generation date
+    html_content += f'<p>Report generated on: {report_date}</p>'
     # Add Overview DataFrame for the selected sample
     html_content += f'<h2>Overview - Sample: {selected_sample}</h2>'
     if st.session_state.analysis in ['Gene Panel']:
-        html_content += f'<h2>Gene Panel: </h2>'
+        html_content += f'<p>Gene Panel: {st.session_state.panel_name}</p>'
         overview_df = all_genes_df[['Metric', selected_sample]]
         html_content += overview_df.to_html(index=False)
     if st.session_state.analysis in ['Exome']:
+        html_content += f'<p>Exome</p>'
         overview_df = all_genes_df[['Metric', selected_sample]]
         html_content += overview_df.to_html(index=False)
     elif st.session_state.analysis in ['Single Gene']:
@@ -141,16 +147,30 @@ with st.popover('Download Report'):
     # Convert HTML to PDF using WeasyPrint
     html_obj = HTML(string=html_content)
     pdf_bytes = html_obj.write_pdf()
+    status.update(label="Generating PDF...")
     # Provide download button
     st.download_button(
-        label="Download PDF Report",
+        label="Download",
         data=pdf_bytes,
         file_name=f'report_{selected_sample}.pdf',
         mime='application/pdf'
     )
+    status.update(label="Report ready for download", expanded=True)
 
-# Existing code for tabs and data display
-tab1, tab2, tab3 = st.tabs(["Overview", "Gene Detail", "Exon Detail"])
+# Determine which tabs to display based on st.session_state.analysis
+if st.session_state.analysis == 'Gene Panel':
+    tab_names = ["Overview", "Gene Detail", "Exon Detail"]
+elif st.session_state.analysis in ['Single Gene', 'Exome']:
+    tab_names = ["Gene Detail", "Exon Detail"]
+else:
+    st.warning("Unsupported analysis type.")
+    tab_names = []
+
+# Create the tabs
+tabs = st.tabs(tab_names)
+
+# Map tab names to tab objects for easy reference
+tab_dict = dict(zip(tab_names, tabs))
 
 def select_all_metrics(select_all, metrics_dict, key_prefix):
     """Function to select or deselect all metrics."""
@@ -158,138 +178,83 @@ def select_all_metrics(select_all, metrics_dict, key_prefix):
         for metric in metrics_list:
             st.session_state[f"{key_prefix}_metric_{metric}"] = select_all
 
-with tab1:
-    st.write(f"Analyzing BAM file: {st.session_state.bam_cram_selected}")
+if "Overview" in tab_dict:
+    with tab_dict["Overview"]:
+        st.write(f"Date: {report_date}")
+        st.write(f"Analyzing file(s): {file_names}")
+        st.write(f"Gene Panel: {st.session_state.panel_name}")
 
-    if st.session_state.analysis in ['Gene Panel', 'Exome']:
-        with st.container():
-            st.write("Overview")
+        if st.session_state.analysis in ['Gene Panel', 'Exome']:
+            with st.container():
+                st.write("Overview")
 
-        with st.container():
-            # Use 'metrics_dict' instead of 'columns' to represent the metrics
-            metrics_dict = {
-                "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
-                "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
-                             "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
-                "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
-                                        "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
-            }
+            with st.container():
+                # Use 'metrics_dict' instead of 'columns' to represent the metrics
+                metrics_dict = {
+                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
+                    "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
+                                 "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
+                    "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
+                                            "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
+                }
 
-            # Initialize checkboxes as selected by default if not in session state
-            for category in metrics_dict:
-                for metric in metrics_dict[category]:
-                    if f"tab1_metric_{metric}" not in st.session_state:
-                        st.session_state[f"tab1_metric_{metric}"] = True
+                # Initialize checkboxes as selected by default if not in session state
+                for category in metrics_dict:
+                    for metric in metrics_dict[category]:
+                        if f"tab1_metric_{metric}" not in st.session_state:
+                            st.session_state[f"tab1_metric_{metric}"] = True
 
-            with st.expander("Filters"):
-                st.subheader("Select Metrics to Display")
+                with st.popover("Filters"):
+                    st.subheader("Select Metrics to Display")
 
-                all_selected = all(
-                    st.session_state.get(f"tab1_metric_{metric}", False)
+                    all_selected = all(
+                        st.session_state.get(f"tab1_metric_{metric}", False)
+                        for metrics_list in metrics_dict.values()
+                        for metric in metrics_list
+                    )
+
+                    if st.button("Select All" if not all_selected else "Deselect All", key="tab1_select_all"):
+                        select_all_metrics(not all_selected, metrics_dict, "tab1")
+                        st.experimental_rerun()
+
+                    col1, col2, col3 = st.columns(3)
+                    metrics_keys = list(metrics_dict.keys())
+
+                    for i, section in enumerate(metrics_keys):
+                        with [col1, col2, col3][i % 3]:
+                            st.write(f"**{section}**")
+                            for metric in metrics_dict[section]:
+                                st.checkbox(metric, key=f"tab1_metric_{metric}")
+
+                # Selecting checked metrics
+                selected_metrics = [
+                    metric
                     for metrics_list in metrics_dict.values()
                     for metric in metrics_list
-                )
+                    if st.session_state.get(f"tab1_metric_{metric}", False)
+                ]
+                final_metrics = ['Metric'] + [col for col in all_genes_df.columns if col != 'Metric']
+                metrics_df = all_genes_df[all_genes_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
 
-                if st.button("Select All" if not all_selected else "Deselect All", key="tab1_select_all"):
-                    select_all_metrics(not all_selected, metrics_dict, "tab1")
-                    st.experimental_rerun()
+                # Display the DataFrame
+                st.dataframe(metrics_df[final_metrics], hide_index=True, height=738, width=800)
 
-                col1, col2, col3 = st.columns(3)
-                metrics_keys = list(metrics_dict.keys())
+        elif st.session_state.analysis == 'Single Gene':
+            st.write('Test')
 
-                for i, section in enumerate(metrics_keys):
-                    with [col1, col2, col3][i % 3]:
-                        st.write(f"**{section}**")
-                        for metric in metrics_dict[section]:
-                            st.checkbox(metric, key=f"tab1_metric_{metric}")
-
-            # Selecting checked metrics
-            selected_metrics = [
-                metric
-                for metrics_list in metrics_dict.values()
-                for metric in metrics_list
-                if st.session_state.get(f"tab1_metric_{metric}", False)
-            ]
-            final_metrics = ['Metric'] + [col for col in all_genes_df.columns if col != 'Metric']
-            metrics_df = all_genes_df[all_genes_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
-
-            # Display the DataFrame
-            st.dataframe(metrics_df[final_metrics], hide_index=True, height=738, width=800)
-
-    elif st.session_state.analysis == 'Single Gene':
-        st.write('Test')
-
-with tab2:
-    with st.container():
-        if not genes_list:
-            st.warning("No genes found in the results.")
-        else:
-            gene = st.selectbox("Select Gene", genes_list, key="gene_selectbox")
-            gene_metrics_df = genes_dfs[gene]
-
-            # Filters for tab2
-            metrics_dict = {
-                "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
-                "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
-                             "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
-                "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
-                                        "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
-            }
-
-            for category in metrics_dict:
-                for metric in metrics_dict[category]:
-                    if f"tab2_metric_{metric}" not in st.session_state:
-                        st.session_state[f"tab2_metric_{metric}"] = True
-
-            with st.expander("Filters"):
-                st.subheader("Select Metrics to Display")
-
-                all_selected = all(
-                    st.session_state.get(f"tab2_metric_{metric}", False)
-                    for metrics_list in metrics_dict.values()
-                    for metric in metrics_list
-                )
-
-                if st.button("Select All" if not all_selected else "Deselect All", key="tab2_select_all"):
-                    select_all_metrics(not all_selected, metrics_dict, "tab2")
-                    st.experimental_rerun()
-
-                col1, col2, col3 = st.columns(3)
-                metrics_keys = list(metrics_dict.keys())
-
-                for i, section in enumerate(metrics_keys):
-                    with [col1, col2, col3][i % 3]:
-                        st.write(f"**{section}**")
-                        for metric in metrics_dict[section]:
-                            st.checkbox(metric, key=f"tab2_metric_{metric}")
-
-            # Filter the DataFrame based on selected metrics
-            selected_metrics = [
-                metric
-                for metrics_list in metrics_dict.values()
-                for metric in metrics_list
-                if st.session_state.get(f"tab2_metric_{metric}", False)
-            ]
-            df = gene_metrics_df[gene_metrics_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
-            final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
-
-            # Display the DataFrame
-            st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
-
-with tab3:
-    with st.container():
-        if not genes_list:
-            st.warning("No genes found in the results.")
-        else:
-            gene = st.selectbox("Select Gene", genes_list, key="exon_gene_selectbox")
-            exons_list = sorted(exons_dfs[gene].keys())
-            if not exons_list:
-                st.warning(f"No exons found for gene {gene}.")
+if "Gene Detail" in tab_dict:
+    with tab_dict["Gene Detail"]:
+        st.write(f"Date: {report_date}")
+        st.write(f"Analyzing file(s): {file_names}")
+        
+        with st.container():
+            if not genes_list:
+                st.warning("No genes found in the results.")
             else:
-                exon = st.selectbox("Select Exon", exons_list, key="exon_selectbox")
-                exon_metrics_df = exons_dfs[gene][exon]
+                gene = st.selectbox("Select Gene", genes_list, key="gene_selectbox")
+                gene_metrics_df = genes_dfs[gene]
 
-                # Filters for tab3
+                # Filters for tab2
                 metrics_dict = {
                     "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
                     "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
@@ -300,20 +265,20 @@ with tab3:
 
                 for category in metrics_dict:
                     for metric in metrics_dict[category]:
-                        if f"tab3_metric_{metric}" not in st.session_state:
-                            st.session_state[f"tab3_metric_{metric}"] = True
+                        if f"tab2_metric_{metric}" not in st.session_state:
+                            st.session_state[f"tab2_metric_{metric}"] = True
 
-                with st.expander("Filters"):
+                with st.popover("Filters"):
                     st.subheader("Select Metrics to Display")
 
                     all_selected = all(
-                        st.session_state.get(f"tab3_metric_{metric}", False)
+                        st.session_state.get(f"tab2_metric_{metric}", False)
                         for metrics_list in metrics_dict.values()
                         for metric in metrics_list
                     )
 
-                    if st.button("Select All" if not all_selected else "Deselect All", key="tab3_select_all"):
-                        select_all_metrics(not all_selected, metrics_dict, "tab3")
+                    if st.button("Select All" if not all_selected else "Deselect All", key="tab2_select_all"):
+                        select_all_metrics(not all_selected, metrics_dict, "tab2")
                         st.experimental_rerun()
 
                     col1, col2, col3 = st.columns(3)
@@ -323,17 +288,83 @@ with tab3:
                         with [col1, col2, col3][i % 3]:
                             st.write(f"**{section}**")
                             for metric in metrics_dict[section]:
-                                st.checkbox(metric, key=f"tab3_metric_{metric}")
+                                st.checkbox(metric, key=f"tab2_metric_{metric}")
 
                 # Filter the DataFrame based on selected metrics
                 selected_metrics = [
                     metric
                     for metrics_list in metrics_dict.values()
                     for metric in metrics_list
-                    if st.session_state.get(f"tab3_metric_{metric}", False)
+                    if st.session_state.get(f"tab2_metric_{metric}", False)
                 ]
-                df = exon_metrics_df[exon_metrics_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
+                df = gene_metrics_df[gene_metrics_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
                 final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
 
                 # Display the DataFrame
                 st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
+
+if "Exon Detail" in tab_dict:
+    with tab_dict["Exon Detail"]:
+        st.write(f"Date: {report_date}")
+        st.write(f"Analyzing file(s): {file_names}")
+        
+        with st.container():
+            if not genes_list:
+                st.warning("No genes found in the results.")
+            else:
+                gene = st.selectbox("Select Gene", genes_list, key="exon_gene_selectbox")
+                exons_list = sorted(exons_dfs[gene].keys())
+                if not exons_list:
+                    st.warning(f"No exons found for gene {gene}.")
+                else:
+                    exon = st.selectbox("Select Exon", exons_list, key="exon_selectbox")
+                    exon_metrics_df = exons_dfs[gene][exon]
+
+                    # Filters for tab3
+                    metrics_dict = {
+                        "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
+                        "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
+                                     "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
+                        "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
+                                                "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
+                    }
+
+                    for category in metrics_dict:
+                        for metric in metrics_dict[category]:
+                            if f"tab3_metric_{metric}" not in st.session_state:
+                                st.session_state[f"tab3_metric_{metric}"] = True
+
+                    with st.popover("Filters"):
+                        st.subheader("Select Metrics to Display")
+
+                        all_selected = all(
+                            st.session_state.get(f"tab3_metric_{metric}", False)
+                            for metrics_list in metrics_dict.values()
+                            for metric in metrics_list
+                        )
+
+                        if st.button("Select All" if not all_selected else "Deselect All", key="tab3_select_all"):
+                            select_all_metrics(not all_selected, metrics_dict, "tab3")
+                            st.experimental_rerun()
+
+                        col1, col2, col3 = st.columns(3)
+                        metrics_keys = list(metrics_dict.keys())
+
+                        for i, section in enumerate(metrics_keys):
+                            with [col1, col2, col3][i % 3]:
+                                st.write(f"**{section}**")
+                                for metric in metrics_dict[section]:
+                                    st.checkbox(metric, key=f"tab3_metric_{metric}")
+
+                    # Filter the DataFrame based on selected metrics
+                    selected_metrics = [
+                        metric
+                        for metrics_list in metrics_dict.values()
+                        for metric in metrics_list
+                        if st.session_state.get(f"tab3_metric_{metric}", False)
+                    ]
+                    df = exon_metrics_df[exon_metrics_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
+                    final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
+
+                    # Display the DataFrame
+                    st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)

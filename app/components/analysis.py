@@ -24,4 +24,4 @@ def run_exome():
         bed_path = bed_path[0]
     for bam_cram in st.session_state.bam_cram_exome:
         if bam_cram in st.session_state.bam_cram:
-            samtools.depth(st.session_state.bam_cram[bam_cram], bed_path, 'data/depth', None, None)
+            samtools.depth(st.session_state.bam_cram[bam_cram], bed_path, 'data/depth/exome', None, None)
