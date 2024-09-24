@@ -240,7 +240,7 @@ def gene_panel():
                 st.success("Form submitted")
                 st.session_state.success = True
                 time.sleep(2)
-
+                st.write(st.session_state.depth_output)
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")
                 else:
@@ -290,6 +290,7 @@ def exome():
             st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value_exome", label_visibility="collapsed",placeholder="Select a cram file")
         
         st.session_state.bam_cram_selected = st.session_state.bam_cram_value_exome
+        st.session_state.bam_cram_exome = st.session_state.bam_cram_value_exome
         
         # Every form must have a submit button.
         submitted = st.button("Submit", key="submit_exome")

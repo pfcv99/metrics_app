@@ -13,10 +13,15 @@ def run_gene_panel():
     bed_path = genome.assembly(st.session_state.assembly, st.session_state.analysis)
     if isinstance(bed_path, tuple):
         bed_path = bed_path[0]
-    samtools.depth(st.session_state.bam_cram[st.session_state.bam_cram_panel[0]], bed_path, 'data/depth/gene_panel', st.session_state.region, None)
+    
+    for bam_cram in st.session_state.bam_cram_panel:
+        if bam_cram in st.session_state.bam_cram:
+            samtools.depth(st.session_state.bam_cram[bam_cram], bed_path, 'data/depth/gene_panel', st.session_state.region, None)
 
 def run_exome():
     bed_path = genome.assembly(st.session_state.assembly_exome, st.session_state.analysis)
     if isinstance(bed_path, tuple):
         bed_path = bed_path[0]
-    samtools.depth(st.session_state.bam_cram[st.session_state.bam_cram_value_exome[0]], bed_path, 'data/depth', None, None)
+    for bam_cram in st.session_state.bam_cram_exome:
+        if bam_cram in st.session_state.bam_cram:
+            samtools.depth(st.session_state.bam_cram[bam_cram], bed_path, 'data/depth', None, None)

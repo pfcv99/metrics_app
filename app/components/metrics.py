@@ -109,7 +109,9 @@ def calculate_metrics():
 
             all_genes_metrics.update(depth_intervals)
 
-            results[file_name] = {'All Genes': all_genes_metrics}
+            # Store 'All Genes' metrics under the sample ID (file_name)
+            results[file_name] = {}
+            results[file_name]['All Genes'] = all_genes_metrics
 
             # Calculate metrics for each gene and exon
             genes_data = {}
@@ -136,6 +138,8 @@ def calculate_metrics():
                     gene_metrics['Size Covered'] = gene_depths.count()
                 else:
                     gene_metrics['Average Read Depth'] = 0
+                    gene_metrics['Min Read Depth'] = 0
+                    gene_metrics['Max Read Depth'] = 0
                     gene_metrics['Size Covered'] = 0
 
                 # Calculate coverage percentages
@@ -161,6 +165,7 @@ def calculate_metrics():
                 genes_data[gene] = gene_metrics
 
                 # Exon-level metrics
+                exon_data_for_gene = {}
                 for exon_name in gene_bed_df['EXON'].unique():
                     exon_metrics = initialize_metrics()
                     exon_bed_df = gene_bed_df[gene_bed_df['EXON'] == exon_name]
@@ -180,6 +185,8 @@ def calculate_metrics():
                         exon_metrics['Size Covered'] = exon_depths.count()
                     else:
                         exon_metrics['Average Read Depth'] = 0
+                        exon_metrics['Min Read Depth'] = 0
+                        exon_metrics['Max Read Depth'] = 0
                         exon_metrics['Size Covered'] = 0
 
                     # Calculate coverage percentages for exon
@@ -202,10 +209,10 @@ def calculate_metrics():
 
                     exon_metrics.update(depth_intervals_exon)
 
-                    # Store the metrics
-                    if gene not in exons_data:
-                        exons_data[gene] = {}
-                    exons_data[gene][exon_name] = exon_metrics
+                    # Store the metrics under the specific gene
+                    exon_data_for_gene[exon_name] = exon_metrics
+
+                exons_data[gene] = exon_data_for_gene  # Exons for the specific gene
 
             results[file_name]['Genes'] = genes_data
             results[file_name]['Exons'] = exons_data
