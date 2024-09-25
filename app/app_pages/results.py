@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from components import metrics
+from components import metrics, plot
 import numpy as np
 import io
 from weasyprint import HTML
@@ -29,6 +29,7 @@ file_names = list(results.keys())
 
 # Prepare All Genes DataFrame
 all_metrics = desired_order
+all_metrics.insert(3, 'Average Read Depth (Gene Weighted)')
 all_genes_df = pd.DataFrame({'Metric': all_metrics})
 
 for file_key in results:
@@ -185,13 +186,11 @@ if "Overview" in tab_dict:
         st.write(f"Gene Panel: {st.session_state.panel_name}")
 
         if st.session_state.analysis in ['Gene Panel', 'Exome']:
-            with st.container():
-                st.write("Overview")
-
+            
             with st.container():
                 # Use 'metrics_dict' instead of 'columns' to represent the metrics
                 metrics_dict = {
-                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
+                    "Basic Information": ["Average Read Depth",'Average Read Depth (Gene Weighted)', "Size Coding", "Size Covered"],
                     "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
                                  "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
                     "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
@@ -238,9 +237,8 @@ if "Overview" in tab_dict:
 
                 # Display the DataFrame
                 st.dataframe(metrics_df[final_metrics], hide_index=True, height=738, width=800)
-
-        elif st.session_state.analysis == 'Single Gene':
-            st.write('Test')
+                
+                plot.display_graphs()
 
 if "Gene Detail" in tab_dict:
     with tab_dict["Gene Detail"]:
@@ -303,6 +301,7 @@ if "Gene Detail" in tab_dict:
                 # Display the DataFrame
                 st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
 
+                plot.display_graphs()
 if "Exon Detail" in tab_dict:
     with tab_dict["Exon Detail"]:
         st.write(f"Date: {report_date}")

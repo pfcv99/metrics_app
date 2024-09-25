@@ -4,7 +4,7 @@ import os
 
 st.title("Settings")
 
-DEFAULTS_FILE = 'defaults.json'
+DEFAULTS_FILE = '.streamlit/defaults.json'
 
 # Original default settings
 ORIGINAL_DEFAULTS = {
