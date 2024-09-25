@@ -35,7 +35,6 @@ def session_state_initialize():
         if key not in st.session_state:
             st.session_state[key] = value
         
-
 def single_gene():
     session_state_initialize()
     with st.container(border=True):
@@ -137,7 +136,7 @@ def single_gene():
                     st.warning('No depth content found! Please check assembly!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
-
+                
 def gene_panel():
     session_state_initialize()
     with st.container(border=True):
@@ -251,8 +250,7 @@ def gene_panel():
                     st.warning('No depth content found! Please check assembly!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
-
-                
+               
 def exome():
     session_state_initialize()
     with st.container(border=True):

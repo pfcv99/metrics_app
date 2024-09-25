@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+@st.cache_data
 def panel_creator():
     data = pd.read_excel('data/regions/gene_panels/BED_Files_Emedgene_2.xlsx', header=0)
     df = pd.DataFrame(data)

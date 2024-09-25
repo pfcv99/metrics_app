@@ -14,6 +14,35 @@ st.logo(main_body_logo)
 
 st.title("Results")
 
+@st.fragment
+def render_metric_filters(tab_name, metrics_dict):
+    with st.popover("Filters"):
+        st.subheader("Select Metrics to Display")
+
+        # Verifica se todas as métricas estão selecionadas
+        all_selected = all(
+            st.session_state.get(f"{tab_name}_metric_{metric}", False)
+            for metrics_list in metrics_dict.values()
+            for metric in metrics_list
+        )
+
+        # Botão para selecionar/deselecionar todas as métricas
+        if st.button("Select All" if not all_selected else "Deselect All", key=f"{tab_name}_select_all"):
+            select_all_metrics(not all_selected, metrics_dict, tab_name)
+            st.rerun()
+
+        # Divide a UI em 3 colunas
+        col1, col2, col3 = st.columns(3)
+        metrics_keys = list(metrics_dict.keys())
+
+        # Exibe as métricas dentro das colunas
+        for i, section in enumerate(metrics_keys):
+            with [col1, col2, col3][i % 3]:
+                st.write(f"**{section}**")
+                for metric in metrics_dict[section]:
+                    st.checkbox(metric, key=f"{tab_name}_metric_{metric}")
+
+
 # Desired order of metrics
 desired_order = [
     'Size Coding', 'Size Covered', 'Average Read Depth', 'Min Read Depth', 'Max Read Depth',
@@ -173,6 +202,7 @@ tabs = st.tabs(tab_names)
 # Map tab names to tab objects for easy reference
 tab_dict = dict(zip(tab_names, tabs))
 
+@st.fragment
 def select_all_metrics(select_all, metrics_dict, key_prefix):
     """Function to select or deselect all metrics."""
     for section, metrics_list in metrics_dict.items():
@@ -203,27 +233,8 @@ if "Overview" in tab_dict:
                         if f"tab1_metric_{metric}" not in st.session_state:
                             st.session_state[f"tab1_metric_{metric}"] = True
 
-                with st.popover("Filters"):
-                    st.subheader("Select Metrics to Display")
+                render_metric_filters("tab1", metrics_dict)
 
-                    all_selected = all(
-                        st.session_state.get(f"tab1_metric_{metric}", False)
-                        for metrics_list in metrics_dict.values()
-                        for metric in metrics_list
-                    )
-
-                    if st.button("Select All" if not all_selected else "Deselect All", key="tab1_select_all"):
-                        select_all_metrics(not all_selected, metrics_dict, "tab1")
-                        st.experimental_rerun()
-
-                    col1, col2, col3 = st.columns(3)
-                    metrics_keys = list(metrics_dict.keys())
-
-                    for i, section in enumerate(metrics_keys):
-                        with [col1, col2, col3][i % 3]:
-                            st.write(f"**{section}**")
-                            for metric in metrics_dict[section]:
-                                st.checkbox(metric, key=f"tab1_metric_{metric}")
 
                 # Selecting checked metrics
                 selected_metrics = [
@@ -237,8 +248,8 @@ if "Overview" in tab_dict:
 
                 # Display the DataFrame
                 st.dataframe(metrics_df[final_metrics], hide_index=True, height=738, width=800)
-                
-                plot.display_graphs()
+                if st.session_state.analysis in ['Gene Panel', 'Exome']:
+                    plot.display_graphs()
 
 if "Gene Detail" in tab_dict:
     with tab_dict["Gene Detail"]:
@@ -266,27 +277,8 @@ if "Gene Detail" in tab_dict:
                         if f"tab2_metric_{metric}" not in st.session_state:
                             st.session_state[f"tab2_metric_{metric}"] = True
 
-                with st.popover("Filters"):
-                    st.subheader("Select Metrics to Display")
+                render_metric_filters("tab2", metrics_dict)
 
-                    all_selected = all(
-                        st.session_state.get(f"tab2_metric_{metric}", False)
-                        for metrics_list in metrics_dict.values()
-                        for metric in metrics_list
-                    )
-
-                    if st.button("Select All" if not all_selected else "Deselect All", key="tab2_select_all"):
-                        select_all_metrics(not all_selected, metrics_dict, "tab2")
-                        st.experimental_rerun()
-
-                    col1, col2, col3 = st.columns(3)
-                    metrics_keys = list(metrics_dict.keys())
-
-                    for i, section in enumerate(metrics_keys):
-                        with [col1, col2, col3][i % 3]:
-                            st.write(f"**{section}**")
-                            for metric in metrics_dict[section]:
-                                st.checkbox(metric, key=f"tab2_metric_{metric}")
 
                 # Filter the DataFrame based on selected metrics
                 selected_metrics = [
@@ -300,8 +292,8 @@ if "Gene Detail" in tab_dict:
 
                 # Display the DataFrame
                 st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
-
-                plot.display_graphs()
+                if st.session_state.analysis in ['Single Gene']:
+                    plot.display_graphs()
 if "Exon Detail" in tab_dict:
     with tab_dict["Exon Detail"]:
         st.write(f"Date: {report_date}")
@@ -333,27 +325,8 @@ if "Exon Detail" in tab_dict:
                             if f"tab3_metric_{metric}" not in st.session_state:
                                 st.session_state[f"tab3_metric_{metric}"] = True
 
-                    with st.popover("Filters"):
-                        st.subheader("Select Metrics to Display")
+                    render_metric_filters("tab3", metrics_dict)
 
-                        all_selected = all(
-                            st.session_state.get(f"tab3_metric_{metric}", False)
-                            for metrics_list in metrics_dict.values()
-                            for metric in metrics_list
-                        )
-
-                        if st.button("Select All" if not all_selected else "Deselect All", key="tab3_select_all"):
-                            select_all_metrics(not all_selected, metrics_dict, "tab3")
-                            st.experimental_rerun()
-
-                        col1, col2, col3 = st.columns(3)
-                        metrics_keys = list(metrics_dict.keys())
-
-                        for i, section in enumerate(metrics_keys):
-                            with [col1, col2, col3][i % 3]:
-                                st.write(f"**{section}**")
-                                for metric in metrics_dict[section]:
-                                    st.checkbox(metric, key=f"tab3_metric_{metric}")
 
                     # Filter the DataFrame based on selected metrics
                     selected_metrics = [
