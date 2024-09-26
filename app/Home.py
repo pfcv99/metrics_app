@@ -59,7 +59,7 @@ settings = st.Page("app_pages/settings.py", title="Settings", icon=":material/se
 form = st.Page("app_pages/query.py", title="Query", icon=":material/analytics:",default=((user == "userA" and password == "userA") or (user == "admin" and password == "admin")))
 results = st.Page("app_pages/results.py", title="Results", icon=":material/table_chart_view:")
 gene_panel_creator = st.Page("app_pages/gene_panel_creator.py", title="Gene panel creator", icon=":material/edit_note:",default=(user == "userB" and password == "userB"))
-about = st.Page("app_pages/3_About.py", title="About", icon=":material/info:")
+about = st.Page("app_pages/about.py", title="About", icon=":material/info:")
 
 # Group pages
 account_pages = [logout_page, settings]
