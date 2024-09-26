@@ -192,5 +192,6 @@ def display_graphs():
     threshold = st.number_input('Coverage Threshold', min_value=0, max_value=1000, value=500, step=10)
 
     # Call the function to plot the selected sample's coverage graph
-    plot_interactive_coverage_from_session(selected_sample, threshold, True)
+    with st.spinner('Wait for it... Getting plot ready...'):
+        plot_interactive_coverage_from_session(selected_sample, threshold, True)
 

@@ -247,10 +247,9 @@ if "Overview" in tab_dict:
                 metrics_df = all_genes_df[all_genes_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
 
                 # Display the DataFrame
-                st.dataframe(metrics_df[final_metrics], hide_index=True, height=738, width=800)
+                st.dataframe(metrics_df[final_metrics], hide_index=True, height=808, width=800)
                 if st.session_state.analysis in ['Gene Panel', 'Exome']:
-                    with st.spinner('Wait for it...'):
-                        plot.display_graphs()
+                    plot.display_graphs()
 
 if "Gene Detail" in tab_dict:
     with tab_dict["Gene Detail"]:
@@ -292,10 +291,9 @@ if "Gene Detail" in tab_dict:
                 final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
 
                 # Display the DataFrame
-                st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
+                st.dataframe(df[final_metrics], hide_index=True, height=808, width=800)
                 if st.session_state.analysis in ['Single Gene']:
-                    with st.spinner('Wait for it...'):
-                        plot.display_graphs()
+                    plot.display_graphs()
 if "Exon Detail" in tab_dict:
     with tab_dict["Exon Detail"]:
         st.write(f"Date: {report_date}")
@@ -341,4 +339,4 @@ if "Exon Detail" in tab_dict:
                     final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
 
                     # Display the DataFrame
-                    st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
+                    st.dataframe(df[final_metrics], hide_index=True, height=808, width=800)
