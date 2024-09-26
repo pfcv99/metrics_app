@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from components import metrics, plot
+from components import metrics, plot, session_state
 import numpy as np
 import io
 from weasyprint import HTML
