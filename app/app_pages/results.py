@@ -45,11 +45,11 @@ def render_metric_filters(tab_name, metrics_dict):
 
 # Desired order of metrics
 desired_order = [
-    'Size Coding', 'Size Covered', 'Average Read Depth', 'Min Read Depth', 'Max Read Depth',
-    'Coverage (0-1x)', 'Coverage (2-10x)', 'Coverage (11-15x)', 'Coverage (16-20x)',
-    'Coverage (21-30x)', 'Coverage (31-50x)', 'Coverage (51-100x)', 'Coverage (101-500x)', 'Coverage (>500x)',
-    'Coverage % (1x)', 'Coverage % (10x)', 'Coverage % (15x)', 'Coverage % (20x)',
-    'Coverage % (30x)', 'Coverage % (50x)', 'Coverage % (100x)', 'Coverage % (500x)'
+    'Size Coding', 'Size Covered','Breadth of Coverage %', 'Average Read Depth', 'Min Read Depth', 'Max Read Depth',
+    'Depth of Coverage (0-1x)', 'Depth of Coverage (2-10x)', 'Depth of Coverage (11-15x)', 'Depth of Coverage (16-20x)',
+    'Depth of Coverage (21-30x)', 'Depth of Coverage (31-50x)', 'Depth of Coverage (51-100x)', 'Depth of Coverage (101-500x)', 'Depth of Coverage (>500x)',
+    'Depth of Coverage % (1x)', 'Depth of Coverage % (10x)', 'Depth of Coverage % (15x)', 'Depth of Coverage % (20x)',
+    'Depth of Coverage % (30x)', 'Depth of Coverage % (50x)', 'Depth of Coverage % (100x)', 'Depth of Coverage % (500x)'
 ]
 
 # Call the calculate_metrics function and store results for multiple depth files
@@ -220,11 +220,11 @@ if "Overview" in tab_dict:
             with st.container():
                 # Use 'metrics_dict' instead of 'columns' to represent the metrics
                 metrics_dict = {
-                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered", 'Min Read Depth','Max Read Depth'],
-                    "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
-                                 "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
-                    "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
-                                            "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
+                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered",'Breadth of Coverage %', 'Min Read Depth','Max Read Depth'],
+                    "Depth of Coverage": ["Depth of Coverage (0-1x)", "Depth of Coverage (2-10x)", "Depth of Coverage (11-15x)", "Depth of Coverage (16-20x)",
+                                 "Depth of Coverage (21-30x)", "Depth of Coverage (31-50x)", "Depth of Coverage (51-100x)", "Depth of Coverage (101-500x)", 'Depth of Coverage (>500x)'],
+                    "Depth of Coverage Percentage": ["Depth of Coverage % (1x)", "Depth of Coverage % (10x)", "Depth of Coverage % (15x)", "Depth of Coverage % (20x)",
+                                            "Depth of Coverage % (30x)", "Depth of Coverage % (50x)", "Depth of Coverage % (100x)", "Depth of Coverage % (500x)"]
                 }
 
                 # Initialize checkboxes as selected by default if not in session state
@@ -247,7 +247,7 @@ if "Overview" in tab_dict:
                 metrics_df = all_genes_df[all_genes_df['Metric'].isin(selected_metrics)].reset_index(drop=True)
 
                 # Display the DataFrame
-                st.dataframe(metrics_df[final_metrics], hide_index=True, height=808, width=800)
+                st.dataframe(metrics_df[final_metrics], hide_index=True, height=842, width=800)
                 if st.session_state.analysis in ['Gene Panel', 'Exome']:
                     plot.display_graphs()
 
@@ -265,11 +265,11 @@ if "Gene Detail" in tab_dict:
 
                 # Filters for tab2
                 metrics_dict = {
-                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered", 'Min Read Depth','Max Read Depth'],
-                    "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
-                                 "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
-                    "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
-                                            "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
+                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered",'Breadth of Coverage %', 'Min Read Depth','Max Read Depth'],
+                    "Depth of Coverage": ["Depth of Coverage (0-1x)", "Depth of Coverage (2-10x)", "Depth of Coverage (11-15x)", "Depth of Coverage (16-20x)",
+                                 "Depth of Coverage (21-30x)", "Depth of Coverage (31-50x)", "Depth of Coverage (51-100x)", "Depth of Coverage (101-500x)", 'Depth of Coverage (>500x)'],
+                    "Depth of Coverage Percentage": ["Depth of Coverage % (1x)", "Depth of Coverage % (10x)", "Depth of Coverage % (15x)", "Depth of Coverage % (20x)",
+                                            "Depth of Coverage % (30x)", "Depth of Coverage % (50x)", "Depth of Coverage % (100x)", "Depth of Coverage % (500x)"]
                 }
 
                 for category in metrics_dict:
@@ -291,7 +291,7 @@ if "Gene Detail" in tab_dict:
                 final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
 
                 # Display the DataFrame
-                st.dataframe(df[final_metrics], hide_index=True, height=808, width=800)
+                st.dataframe(df[final_metrics], hide_index=True, height=842, width=800)
                 if st.session_state.analysis in ['Single Gene']:
                     plot.display_graphs()
 if "Exon Detail" in tab_dict:
@@ -313,11 +313,11 @@ if "Exon Detail" in tab_dict:
 
                     # Filters for tab3
                     metrics_dict = {
-                        "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered", 'Min Read Depth','Max Read Depth'],
-                        "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
-                                     "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
-                        "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
-                                                "Coverage % (30x)", "Coverage % (50x)", "Coverage % (100x)", "Coverage % (500x)"]
+                        "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered",'Breadth of Coverage %', 'Min Read Depth','Max Read Depth'],
+                        "Depth of Coverage": ["Depth of Coverage (0-1x)", "Depth of Coverage (2-10x)", "Depth of Coverage (11-15x)", "Depth of Coverage (16-20x)",
+                                     "Depth of Coverage (21-30x)", "Depth of Coverage (31-50x)", "Depth of Coverage (51-100x)", "Depth of Coverage (101-500x)", 'Depth of Coverage (>500x)'],
+                        "Depth of Coverage Percentage": ["Depth of Coverage % (1x)", "Depth of Coverage % (10x)", "Depth of Coverage % (15x)", "Depth of Coverage % (20x)",
+                                                "Depth of Coverage % (30x)", "Depth of Coverage % (50x)", "Depth of Coverage % (100x)", "Depth of Coverage % (500x)"]
                     }
 
                     for category in metrics_dict:
@@ -339,4 +339,4 @@ if "Exon Detail" in tab_dict:
                     final_metrics = ['Metric'] + [col for col in df.columns if col != 'Metric']
 
                     # Display the DataFrame
-                    st.dataframe(df[final_metrics], hide_index=True, height=808, width=800)
+                    st.dataframe(df[final_metrics], hide_index=True, height=842, width=800)

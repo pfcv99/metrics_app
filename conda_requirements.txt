@@ -1,6 +1,0 @@
-# This file may be used to create an environment using:
-# $ conda create --name <env> --file <this file>
-# platform: linux-64
-bcftools=1.19=h8b25389_0
-python=3.12.1=h996f2a0_0
-samtools=1.19.2=h50ea8bc_0
