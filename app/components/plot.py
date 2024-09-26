@@ -160,8 +160,19 @@ def plot_interactive_coverage_from_session(selected_sample, threshold=400, highl
         shapes=exon_shapes  # Add exon region shapes
     )
 
+    # Create an invisible trace for the exon legend
+    exon_legend_trace = go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='LightSkyBlue'),
+        fillcolor='LightSkyBlue',
+        name='Exon',
+        showlegend=True
+    )
+    
     # Compile all traces
-    traces = [coverage_trace, mean_line, threshold_line] + highlight_traces
+    traces = [coverage_trace, mean_line, threshold_line, exon_legend_trace] + highlight_traces
+
 
     # Create and display the figure
     fig = go.Figure(data=traces, layout=layout)
