@@ -1,16 +1,21 @@
-# Data files #
+# Ignore files, but not folders #
 ######################
-data/depth/*
-data/mapped/*
-data/regions/*
+data/depth/gene_panel/*
+!data/depth/gene_panel/.gitkeep
+data/depth/exome/*
+!data/depth/exome/.gitkeep
+data/depth/single_gene/*
+!data/depth/single_gene/.gitkeep
 
-# Example data won't be ignored #
-######################
-!data/depth/output_1111751_PKD1.depth
-!data/mapped/1111751_PKD1.bam
-!data/regions/PKD1_8bp.bed
-!data/regions/genome_exons/MANE_hg38_exons_modif_MANE.bed
-!data/regions/gene_panels/BED_Files_Emedgene_2.csv
+data/mapped/*
+!data/mapped/.gitkeep
+
+data/regions/genome_exons/*
+!data/regions/genome_exons/.gitkeep
+data/regions/gene_panels/*
+!data/regions/gene_panels/.gitkeep
+!data/regions/.gitkeep
+
 
 
 # OS generated files #
