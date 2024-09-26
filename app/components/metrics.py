@@ -48,7 +48,7 @@ def calculate_metrics():
         'Size Coding',
         'Size Covered',
         'Average Read Depth',
-        'Average Read Depth (Gene Weighted)',
+        #'Average Read Depth (Gene Weighted)',
         'Min Read Depth',
         'Max Read Depth',
         'Coverage % (1x)',
@@ -84,21 +84,21 @@ def calculate_metrics():
             all_genes_metrics['Size Coding'] = bed_df['SIZE'].sum()
             all_genes_metrics['Average Read Depth'] = all_depths.mean()
             # Cálculo da média ponderada pela cobertura dos genes
-            weighted_sum = 0
-            total_size = 0
-            for _, row in bed_df.iterrows():
-                start = row['START']
-                end = row['END']
-                size = row['SIZE']
-                gene_depths = depth_df[(depth_df['POS'] >= start) & (depth_df['POS'] <= end)]['DEPTH']
+            #weighted_sum = 0
+            #total_size = 0
+            #for _, row in bed_df.iterrows():
+            #    start = row['START']
+            #    end = row['END']
+            #    size = row['SIZE']
+            #    gene_depths = depth_df[(depth_df['POS'] >= start) & (depth_df['POS'] <= end)]['DEPTH']
 
-                weighted_sum += gene_depths.sum() * size
-                total_size += size
+            #    weighted_sum += gene_depths.sum() * size
+            #    total_size += size
 
-            if total_size > 0:
-                all_genes_metrics['Average Read Depth (Gene Weighted)'] = weighted_sum / total_size
-            else:
-                all_genes_metrics['Average Read Depth (Gene Weighted)'] = 0
+            #if total_size > 0:
+            #    all_genes_metrics['Average Read Depth (Gene Weighted)'] = weighted_sum / total_size
+            #else:
+            #    all_genes_metrics['Average Read Depth (Gene Weighted)'] = 0
             all_genes_metrics['Min Read Depth'] = all_depths.min()
             all_genes_metrics['Max Read Depth'] = all_depths.max()
             all_genes_metrics['Size Covered'] = all_depths.count()

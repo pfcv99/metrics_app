@@ -220,7 +220,7 @@ if "Overview" in tab_dict:
             with st.container():
                 # Use 'metrics_dict' instead of 'columns' to represent the metrics
                 metrics_dict = {
-                    "Basic Information": ["Average Read Depth",'Average Read Depth (Gene Weighted)', "Size Coding", "Size Covered"],
+                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered", 'Min Read Depth','Max Read Depth'],
                     "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
                                  "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
                     "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
@@ -249,7 +249,8 @@ if "Overview" in tab_dict:
                 # Display the DataFrame
                 st.dataframe(metrics_df[final_metrics], hide_index=True, height=738, width=800)
                 if st.session_state.analysis in ['Gene Panel', 'Exome']:
-                    plot.display_graphs()
+                    with st.spinner('Wait for it...'):
+                        plot.display_graphs()
 
 if "Gene Detail" in tab_dict:
     with tab_dict["Gene Detail"]:
@@ -265,7 +266,7 @@ if "Gene Detail" in tab_dict:
 
                 # Filters for tab2
                 metrics_dict = {
-                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
+                    "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered", 'Min Read Depth','Max Read Depth'],
                     "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
                                  "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
                     "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",
@@ -293,7 +294,8 @@ if "Gene Detail" in tab_dict:
                 # Display the DataFrame
                 st.dataframe(df[final_metrics], hide_index=True, height=738, width=800)
                 if st.session_state.analysis in ['Single Gene']:
-                    plot.display_graphs()
+                    with st.spinner('Wait for it...'):
+                        plot.display_graphs()
 if "Exon Detail" in tab_dict:
     with tab_dict["Exon Detail"]:
         st.write(f"Date: {report_date}")
@@ -313,7 +315,7 @@ if "Exon Detail" in tab_dict:
 
                     # Filters for tab3
                     metrics_dict = {
-                        "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered"],
+                        "Basic Information": ["Average Read Depth", "Size Coding", "Size Covered", 'Min Read Depth','Max Read Depth'],
                         "Coverage": ["Coverage (0-1x)", "Coverage (2-10x)", "Coverage (11-15x)", "Coverage (16-20x)",
                                      "Coverage (21-30x)", "Coverage (31-50x)", "Coverage (51-100x)", "Coverage (101-500x)", 'Coverage (>500x)'],
                         "Coverage Percentage": ["Coverage % (1x)", "Coverage % (10x)", "Coverage % (15x)", "Coverage % (20x)",

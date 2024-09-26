@@ -189,7 +189,7 @@ def display_graphs():
     selected_sample = st.selectbox("Select Sample to Visualize", sample_names, key="sample_plot")
 
     # Input for threshold adjustment
-    threshold = st.number_input('Coverage Threshold', min_value=500, max_value=1000, step=10)
+    threshold = st.number_input('Coverage Threshold', min_value=0, max_value=1000, value=500, step=10)
 
     # Call the function to plot the selected sample's coverage graph
     plot_interactive_coverage_from_session(selected_sample, threshold, True)
