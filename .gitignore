@@ -16,6 +16,8 @@ data/regions/gene_panels/*
 !data/regions/gene_panels/.gitkeep
 !data/regions/.gitkeep
 
+tests
+
 
 
 # OS generated files #

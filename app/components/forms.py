@@ -28,7 +28,6 @@ def session_state_initialize():
         'exon': [],
         'all_exons': True,
         'panel_name': None, 
-        'submit': False
     }
     
     for key, value in defaults.items():
