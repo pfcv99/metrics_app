@@ -59,7 +59,7 @@ def single_gene():
         st.session_state.assembly = st.session_state.assembly_value
         
         # Dynamically update the genes list when assembly changes
-        genes_list = sorted([str(gene) for gene in genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][3].unique().tolist()]) #NEM ISTO. NÃO ATUALIZA DE FORMA DINÂMICA. ESTÁ SEMPRE A MOSTRAR O GRCh37/hg19
+        genes_list = sorted([str(gene) for gene in genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][3].unique().tolist()]) 
         # Now use the sorted list in the selectbox
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -132,7 +132,7 @@ def single_gene():
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")
                 else:
-                    st.warning('No depth content found! Please check assembly!')
+                    st.warning('No depth content found!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
                 
@@ -201,7 +201,7 @@ def gene_panel():
         st.session_state.region = selected_genes
         
         st.markdown(
-            "#### cram file",
+            "#### BAM/CRAM file(s)",
             help=(
                 "**Please select a cram file.**\n"
                 "- The selection of a :red[cram file] is essential for analyzing the sequencing data.\n"

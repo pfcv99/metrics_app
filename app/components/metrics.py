@@ -233,7 +233,7 @@ def calculate_metrics():
                     # Store the metrics under the specific gene
                     exon_data_for_gene[exon_name] = exon_metrics
 
-                exons_data[gene] = exon_data_for_gene  # Exons for the specific gene
+                exons_data[gene] = exon_data_for_gene  # Exons for the specific gene    
 
             results[file_name]['Genes'] = genes_data
             results[file_name]['Exons'] = exons_data

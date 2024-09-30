@@ -247,8 +247,8 @@ if "Overview" in tab_dict:
 
                 # Display the DataFrame
                 st.dataframe(metrics_df[final_metrics], hide_index=True, height=842, width=800)
-                if st.session_state.analysis in ['Gene Panel', 'Exome']:
-                    plot.display_graphs()
+                #if st.session_state.analysis in ['Gene Panel', 'Exome']:
+                #    plot.display_graphs() VER ISTO. EM PAINES MUITO GRANDES NÃO CONSEGUE FAZER O PLOT.
 
 if "Gene Detail" in tab_dict:
     with tab_dict["Gene Detail"]:
