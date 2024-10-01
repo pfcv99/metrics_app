@@ -15,6 +15,7 @@ data/regions/genome_exons/*
 data/regions/gene_panels/*
 !data/regions/gene_panels/.gitkeep
 data/regions/single_gene/*
+!data/regions/single_gene/.gitkeep
 !data/regions/.gitkeep
 
 tests
