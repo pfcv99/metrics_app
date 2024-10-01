@@ -1,44 +1,51 @@
-FROM ubuntu:23.10
+FROM python:3.12.1-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /metrics_app  # Set working directory to /metrics_app
 
-WORKDIR /metrics_app
-
-# Install system dependencies
+# Install essential dependencies and development tools
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    software-properties-common \
     git \
-    python3.12 \
-    python3.12-dev \
-    python3.12-venv \
-    samtools \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    zlib1g-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libcurl4-openssl-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    autoconf \
+    automake \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create a virtual environment
-RUN python3.12 -m venv /opt/venv
+# Clone the repository into the current directory (no nested /metrics_app directory)
+RUN git clone --branch pfcv99-stable-version https://github.com/pfcv99/metrics_app.git .
 
-# Activate the virtual environment and upgrade pip
-RUN /opt/venv/bin/pip install --upgrade pip
+# Install Python dependencies from requirements.txt
+RUN pip install --upgrade pip==23.3.1
+RUN pip install -r requirements.txt
 
-# Copy the requirements and install dependencies in the virtual environment
-COPY requirements.txt .
-RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+# Download and install htslib
+RUN curl -L https://github.com/samtools/htslib/releases/download/1.19/htslib-1.19.tar.bz2 | tar -xj && \
+    cd htslib-1.19 && \
+    ./configure --prefix=/usr/local && \
+    make && \
+    make install && \
+    cd ..
 
-# Copy the application code
-COPY . .
+# Download and install Samtools
+RUN curl -L https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2 | tar -xj && \
+    cd samtools-1.19 && \
+    ./configure --prefix=/usr/local && \
+    make && \
+    make install && \
+    cd ..
 
-# Set environment variables
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV PYTHONUNBUFFERED=1
-
-# Expose the port
+# Expose the Streamlit port
 EXPOSE 8501
 
-# Healthcheck
+# Healthcheck for Streamlit
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
-# Entry point
-ENTRYPOINT ["streamlit", "run", "app/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Set the entry point for Streamlit, pointing to the Home.py inside the app folder
+ENTRYPOINT ["streamlit", "run", "/metrics_app/app/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
