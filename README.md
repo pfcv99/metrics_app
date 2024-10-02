@@ -162,22 +162,22 @@ streamlit run app/Home.py
 
 ## Required Files
 
-To ensure the application functions correctly, specific data files must be placed in designated directories. These files are essential for performing genetic analysis, particularly for tasks such as gene panel analysis, genome mapping, and data visualization. Below is a detailed breakdown of the required files and their locations:
+To ensure the application functions properly, the following data files must be added to the designated directories. These files are essential for the genetic analysis workflows, such as gene panel analysis, genome mapping, and data visualization:
 
 - **BED Files for Universal BED Mapping**:
   - **Location**: `data/regions/universal_bed/GRCh37_hg19/` and `data/regions/universal_bed/GRCh38_hg38/`
-  - **Required Files**: These directories should contain `.BED` files, which are used for specifying genomic regions and annotations. Files must be provided for both GRCh37 (hg19) and GRCh38 (hg38) reference genomes. The `.BED` files define the specific genomic regions relevant for the analysis.
+  - **Required Files**: `.BED` files are needed in these directories to specify genomic regions and annotations. You must include files for both GRCh37 (hg19) and GRCh38 (hg38) reference genomes. These files are critical for defining the genomic regions involved in the analysis.
 
 - **Gene Panel Files**:
   - **Location**: `data/regions/gene_panels/`
-  - **Required Files**: This directory must contain `.xlsx` files (Excel spreadsheets), which store gene panel information used to identify and analyze specific sets of genes. These files are crucial for executing gene panel-based analysis workflows.
+  - **Required Files**: `.xlsx` files containing gene panel information must be present. These files help identify and analyze specific sets of genes for gene panel-based analysis.
 
-- **Mapped BAM Files**:
+- **Mapped BAM or CRAM Files**:
   - **Location**: `data/mapped/`
-  - **Required Files**: This directory must contain `.bam` files, which are binary versions of sequence alignment data used for mapping reads to the reference genome. The BAM files are critical for tasks such as read-depth analysis and variant detection.
+  - **Required Files**: Either `.bam` or `.cram` files must be placed in this directory. These files contain sequence alignment data used for mapping reads to the reference genome and are essential for read-depth analysis and variant detection.
 
 ### Notes:
-- The exact filenames for the `.BED`, `.xlsx`, and `.bam` files may vary depending on the datasets or analysis workflows you are using. However, files of these types must be present in their respective directories to ensure that the application can run all required genetic analysis processes successfully.
+- The specific filenames of the `.BED`, `.xlsx`, and `.bam` or `.cram` files may differ depending on your datasets or workflows. However, files of these types must be present in their respective directories for the application to operate successfully during genetic analysis processes.
 
 ## Application Pages
 
