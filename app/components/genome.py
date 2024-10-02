@@ -24,9 +24,9 @@ def assembly(assembly, analysis):
 
     # Define patterns for searching files
     patterns = {
-        "Single Gene": "*.BED",
-        "Gene Panel": "*.BED",
-        "Exome": "*.BED"
+        "Single Gene": "*_nochr.BED",
+        "Gene Panel": "*_modif.BED",
+        "Exome": "*_nochr.BED"
     }
 
     # Get the appropriate directory and pattern

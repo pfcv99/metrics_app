@@ -119,26 +119,26 @@ def single_gene():
         if submitted_single_gene:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam_cram:
                 # Atualizar a barra de progresso enquanto o cálculo está a decorrer
-                update_progress_bar()              
-                
-                # Call the samtools.depth function to calculate the depth of coverage
-                
-                depth_thread = threading.Thread(target=analysis.run_single_gene())
-                depth_thread.start()
+                with st.spinner('Submitting Form...'):              
+                    
+                    # Call the samtools.depth function to calculate the depth of coverage
 
-                
-                # Esperar o término do thread de cálculo
-                depth_thread.join()
-                
-                st.success("Form submitted")
-                st.session_state.sucess = True
-                st.session_state.results = True
-                time.sleep(1)
-            
-                if st.session_state.depth_output:
-                    st.switch_page("app_pages/results.py")
-                else:
-                    st.warning('No depth content found!')
+                    depth_thread = threading.Thread(target=analysis.run_single_gene())
+                    depth_thread.start()
+
+
+                    # Esperar o término do thread de cálculo
+                    depth_thread.join()
+
+                    st.success("Form submitted")
+                    st.session_state.sucess = True
+                    st.session_state.results = True
+                    time.sleep(1)
+
+                    if st.session_state.depth_output:
+                        st.switch_page("app_pages/results.py")
+                    else:
+                        st.warning('No depth content found!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
                 
@@ -240,25 +240,25 @@ def gene_panel():
         if submitted_gene_panel:
             if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram_panel:
                 # Update the progress bar while calculation is ongoing
-                update_progress_bar()
-                
-                # Call the samtools.depth function to calculate the depth of coverage
-                depth_thread = threading.Thread(target=analysis.run_gene_panel())
-                depth_thread.start()
+                with st.spinner('Submitting Form...'):
+                    
+                    # Call the samtools.depth function to calculate the depth of coverage
+                    depth_thread = threading.Thread(target=analysis.run_gene_panel())
+                    depth_thread.start()
 
 
 
-                # Wait for the calculation thread to finish
-                depth_thread.join()
+                    # Wait for the calculation thread to finish
+                    depth_thread.join()
 
-                st.success("Form submitted")
-                st.session_state.success = True
-                st.session_state.results = True
-                time.sleep(0.5)
-                if st.session_state.depth_output:
-                    st.switch_page("app_pages/results.py")
-                else:
-                    st.warning('No depth content found! Please check assembly!')
+                    st.success("Form submitted")
+                    st.session_state.success = True
+                    st.session_state.results = True
+                    time.sleep(0.5)
+                    if st.session_state.depth_output:
+                        st.switch_page("app_pages/results.py")
+                    else:
+                        st.warning('No depth content found!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
                
@@ -316,24 +316,24 @@ def exome():
         if submitted_exome:
             if st.session_state.analysis and st.session_state.assembly_exome and st.session_state.bam_cram_value_exome:
                 # Atualizar a barra de progresso enquanto o cálculo está a decorrer
-                update_progress_bar()                
-                
-                # Call the samtools.depth function to calculate the depth of coverage
-                
-                depth_thread = threading.Thread(target=analysis.run_exome())
-                depth_thread.start()
-
-
-                # Esperar o término do thread de cálculo
-                depth_thread.join()
-                
-                st.success("Form submitted")
-                st.session_state.sucess = True
-                st.session_state.results = True
-                time.sleep(2)
-                if st.session_state.depth_output:
-                    st.switch_page("app_pages/results.py")
-                else:
-                    st.warning('No depth content found! Please check assembly!')
+                with st.spinner('Submitting Form...'):               
+                    
+                    # Call the samtools.depth function to calculate the depth of coverage
+                    
+                    depth_thread = threading.Thread(target=analysis.run_exome())
+                    depth_thread.start()
+    
+    
+                    # Esperar o término do thread de cálculo
+                    depth_thread.join()
+                    
+                    st.success("Form submitted")
+                    st.session_state.sucess = True
+                    st.session_state.results = True
+                    time.sleep(2)
+                    if st.session_state.depth_output:
+                        st.switch_page("app_pages/results.py")
+                    else:
+                        st.warning('No depth content found!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
