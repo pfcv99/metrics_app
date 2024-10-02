@@ -1,6 +1,7 @@
 FROM python:3.12.1-slim
 
-WORKDIR /metrics_app  # Set working directory to /metrics_app
+# Set working directory to /metrics_app
+WORKDIR /metrics_app  
 
 # Install essential dependencies and development tools
 RUN apt-get update && apt-get install -y \
@@ -12,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libbz2-dev \
     liblzma-dev \
     libcurl4-openssl-dev \
+    libssl-dev \
     libncurses5-dev \
     libncursesw5-dev \
     autoconf \
@@ -19,19 +21,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone the repository into the current directory (no nested /metrics_app directory)
-RUN git clone --branch pfcv99-stable-version https://github.com/pfcv99/metrics_app.git .
+COPY . .
 
 # Install Python dependencies from requirements.txt
 RUN pip install --upgrade pip==23.3.1
 RUN pip install -r requirements.txt
-
-# Download and install htslib
-RUN curl -L https://github.com/samtools/htslib/releases/download/1.19/htslib-1.19.tar.bz2 | tar -xj && \
-    cd htslib-1.19 && \
-    ./configure --prefix=/usr/local && \
-    make && \
-    make install && \
-    cd ..
 
 # Download and install Samtools
 RUN curl -L https://github.com/samtools/samtools/releases/download/1.19/samtools-1.19.tar.bz2 | tar -xj && \
@@ -48,4 +42,4 @@ EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Set the entry point for Streamlit, pointing to the Home.py inside the app folder
-ENTRYPOINT ["streamlit", "run", "/metrics_app/app/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "app/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
