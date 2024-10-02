@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import time
 
+sidebar_logo = "data/img/unilabs_logo.png"
+main_body_logo = "data/img/thumbnail_image001.png"
+st.logo(sidebar_logo, size="large", icon_image=main_body_logo)
+
 if 'panel_name' not in st.session_state:
     st.session_state.panel_name = None
 if 'genes' not in st.session_state:

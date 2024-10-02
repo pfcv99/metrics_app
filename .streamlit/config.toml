@@ -67,7 +67,7 @@
 # If there are no options left, hide the menu.
 
 # Default: "auto"
-# toolbarMode = "auto"
+toolbarMode = "minimal"
 
 # Controls whether the default sidebar page navigation in a multi-page app is displayed.
 

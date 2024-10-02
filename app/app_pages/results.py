@@ -1,16 +1,18 @@
 import streamlit as st
 import pandas as pd
-from components import metrics, plot, session_state
+from components import metrics, plot, session_state, streamlit_page_config
 import numpy as np
 from weasyprint import HTML
 import base64
 import datetime
 import time
 
+# Set Streamlit page configuration
+streamlit_page_config.set_page_configuration()
 # Load logos
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
-st.logo(sidebar_logo, icon_image=main_body_logo)
+st.logo(sidebar_logo, size="large", icon_image=main_body_logo)
 
 st.title("Results")
 

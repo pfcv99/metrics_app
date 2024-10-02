@@ -4,7 +4,7 @@ import streamlit as st
 # Display logos
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
-st.logo(sidebar_logo, icon_image=main_body_logo)
+st.logo(sidebar_logo, size="large",link='http://localhost:8501/', icon_image=main_body_logo)
 
 # Initialize session state
 if "user" not in st.session_state:

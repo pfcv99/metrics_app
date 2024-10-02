@@ -4,7 +4,7 @@ import os
 
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
-st.logo(sidebar_logo, icon_image=main_body_logo)
+st.logo(sidebar_logo, size="large", icon_image=main_body_logo)
 
 st.title("Settings")
 
