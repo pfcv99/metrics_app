@@ -28,13 +28,18 @@ def session_state_initialize():
         'exon': [],
         'all_exons': True,
         'panel_name': None, 
+        'results': False
     }
     
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
-        
 def single_gene():
+    if 'depth_output' in st.session_state and 'filtered_bed' in st.session_state:
+        st.session_state.pop('depth_output')
+        st.session_state.pop('filtered_bed')
+    if 'results' in st.session_state:
+        st.session_state.pop('results')
     session_state_initialize()
     with st.container(border=True):
                 
@@ -127,6 +132,7 @@ def single_gene():
                 
                 st.success("Form submitted")
                 st.session_state.sucess = True
+                st.session_state.results = True
                 time.sleep(1)
             
                 if st.session_state.depth_output:
@@ -137,6 +143,11 @@ def single_gene():
                 st.warning("Form not submitted. Please fill in all fields.")
                 
 def gene_panel():
+    if 'depth_output' in st.session_state and 'filtered_bed' in st.session_state:
+        st.session_state.pop('depth_output')
+        st.session_state.pop('filtered_bed')
+    if 'results' in st.session_state:
+        st.session_state.pop('results')
     session_state_initialize()
     with st.container(border=True):
         st.markdown(
@@ -242,6 +253,7 @@ def gene_panel():
 
                 st.success("Form submitted")
                 st.session_state.success = True
+                st.session_state.results = True
                 time.sleep(0.5)
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")
@@ -251,6 +263,11 @@ def gene_panel():
                 st.warning("Form not submitted. Please fill in all fields.")
                
 def exome():
+    if 'depth_output' in st.session_state and 'filtered_bed' in st.session_state:
+        st.session_state.pop('depth_output')
+        st.session_state.pop('filtered_bed')
+    if 'results' in st.session_state:
+        st.session_state.pop('results')
     session_state_initialize()
     with st.container(border=True):
                 
@@ -312,6 +329,7 @@ def exome():
                 
                 st.success("Form submitted")
                 st.session_state.sucess = True
+                st.session_state.results = True
                 time.sleep(2)
                 if st.session_state.depth_output:
                     st.switch_page("app_pages/results.py")

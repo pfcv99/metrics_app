@@ -18,6 +18,7 @@ if 'bam_cram_files' not in st.session_state:
 
 if 'submit' not in st.session_state:
     st.session_state.submit = False
+
 # Login feature flag (set to False to disable login, True to enable)
 login_enabled = False
 
