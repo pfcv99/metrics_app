@@ -160,16 +160,24 @@ conda activate metrics_app_env
 streamlit run app/Home.py
 ```
 
-## Required Files
+### Required Files
 
-To ensure the application runs correctly, the following files (or equivalent) must be added to the respective directories:
+To ensure the application functions correctly, specific data files must be placed in designated directories. These files are essential for performing genetic analysis, particularly for tasks such as gene panel analysis, genome mapping, and data visualization. Below is a detailed breakdown of the required files and their locations:
 
-- `data/regions/universal_bed/GRCh37_hg19/*.BED`
-- `data/regions/universal_bed/GRCh38_hg38/*.BED`
-- `data/regions/gene_panels/*.xlsx`
-- `data/mapped/*.bam`
+- **BED Files for Universal BED Mapping**:
+  - **Location**: `data/regions/universal_bed/GRCh37_hg19/` and `data/regions/universal_bed/GRCh38_hg38/`
+  - **Required Files**: These directories should contain `.BED` files, which are used for specifying genomic regions and annotations. Files must be provided for both GRCh37 (hg19) and GRCh38 (hg38) reference genomes. The `.BED` files define the specific genomic regions relevant for the analysis.
 
-These files are necessary for the genetic analysis processes, and while the exact filenames may differ, they must be present in the specified folders.
+- **Gene Panel Files**:
+  - **Location**: `data/regions/gene_panels/`
+  - **Required Files**: This directory must contain `.xlsx` files (Excel spreadsheets), which store gene panel information used to identify and analyze specific sets of genes. These files are crucial for executing gene panel-based analysis workflows.
+
+- **Mapped BAM Files**:
+  - **Location**: `data/mapped/`
+  - **Required Files**: This directory must contain `.bam` files, which are binary versions of sequence alignment data used for mapping reads to the reference genome. The BAM files are critical for tasks such as read-depth analysis and variant detection.
+
+### Notes:
+- The exact filenames for the `.BED`, `.xlsx`, and `.bam` files may vary depending on the datasets or analysis workflows you are using. However, files of these types must be present in their respective directories to ensure that the application can run all required genetic analysis processes successfully.
 
 ## Application Pages
 
