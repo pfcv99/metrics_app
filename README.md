@@ -160,7 +160,7 @@ conda activate metrics_app_env
 streamlit run app/Home.py
 ```
 
-### Required Files
+## Required Files
 
 To ensure the application functions correctly, specific data files must be placed in designated directories. These files are essential for performing genetic analysis, particularly for tasks such as gene panel analysis, genome mapping, and data visualization. Below is a detailed breakdown of the required files and their locations:
 
