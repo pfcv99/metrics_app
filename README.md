@@ -11,9 +11,15 @@
 
 ```
 metrics_app
+├── Dockerfile
+├── README.md
+├── __init__.py
+├── environment.yml
 ├── app
 │   ├── Home.py
+│   ├── __init__.py
 │   ├── app_pages
+│   │   ├── __init__.py
 │   │   ├── about.py
 │   │   ├── gene_panel_creator.py
 │   │   ├── logout.py
@@ -21,6 +27,7 @@ metrics_app
 │   │   ├── results.py
 │   │   └── settings.py
 │   └── components
+│       ├── __init__.py
 │       ├── analysis.py
 │       ├── bam_cram.py
 │       ├── forms.py
@@ -33,19 +40,21 @@ metrics_app
 │       ├── session_state.py
 │       ├── streamlit_page_config.py
 │       └── universal_bed.py
-├── data
-│   ├── depth
-│   │   ├── exome
-│   │   ├── gene_panel
-│   │   └── single_gene
-│   ├── img
-│   ├── mapped
-│   └── regions
-│       ├── gene_panels
-│       └── genome_exons
-├── environment.yml
-├── Dockerfile
-└── README.md
+└── data
+   ├── depth
+   │   ├── exome
+   │   ├── gene_panel
+   │   └── single_gene
+   ├── img
+   │   ├── thumbnail_image001.png
+   │   ├── unilabs-1.svg
+   │   └── unilabs_logo.png
+   ├── mapped
+   └── regions
+       ├── gene_panels
+       └── universal_bed
+           ├── GRCh37_hg19
+           └── GRCh38_hg38
 ```
 
 ## Features
