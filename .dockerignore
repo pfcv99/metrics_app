@@ -1,0 +1,18 @@
+# Ignore files, but not folders #
+######################
+data/depth/gene_panel/*
+!data/depth/gene_panel/.gitkeep
+data/depth/exome/*
+!data/depth/exome/.gitkeep
+data/depth/single_gene/*
+!data/depth/single_gene/.gitkeep
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
