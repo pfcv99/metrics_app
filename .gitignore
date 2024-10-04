@@ -12,6 +12,10 @@ data/mapped/*
 !data/mapped/.gitkeep
 
 data/regions/genome_exons
+data/regions/universal_bed/GRCh37_hg19/*
+!data/regions/universal_bed/GRCh37_hg19/.gitkeep
+data/regions/universal_bed/GRCh38_hg38/*
+!data/regions/universal_bed/GRCh38_hg38/.gitkeep
 data/regions/gene_panels/*
 !data/regions/gene_panels/.gitkeep
 data/regions/single_gene/*
