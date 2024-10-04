@@ -18,15 +18,15 @@ def find_equivalent_file(directory, pattern):
 @st.cache_data
 def assembly(assembly, analysis):
     directories = {
-        "GRCh38/hg38": 'data/regions/universal_bed/GRCh38_hg38/',
-        "GRCh37/hg19": 'data/regions/universal_bed/GRCh37_hg19/'
+        "GRCh38/hg38": 'data/regions/universal_bed/GRCh38_hg38/MANE/modified',
+        "GRCh37/hg19": 'data/regions/universal_bed/GRCh37_hg19/modified'
     }
 
     # Define patterns for searching files
     patterns = {
-        "Single Gene": "*_nochr.BED",
-        "Gene Panel": "*_modif.BED",
-        "Exome": "*_nochr.BED"
+        "Single Gene": "*_chr.bed" if analysis == "Gene Panel" else "*.bed",
+        "Gene Panel": "*_chr.bed",
+        "Exome": "*.bed"
     }
 
     # Get the appropriate directory and pattern

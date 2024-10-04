@@ -5,6 +5,7 @@ data/depth/gene_panel/*
 data/depth/exome/*
 !data/depth/exome/.gitkeep
 data/depth/single_gene/*
+data/depth/*
 !data/depth/single_gene/.gitkeep
 
 data/mapped/*
