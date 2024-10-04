@@ -31,7 +31,7 @@ def folders():
     output_folder = Path("./data/depth")
     #bed_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BED")
     #bam_folder = Path("/mnt/DADOS/Biologia Molecular/15-NGS/PCRMultiplex/3-Analise/2024/Casos Somático/BAM")
-    bed_folder = Path("./data/regions/single_gene")
+    bed_folder = Path("/mnt/c/Users/ptpedfilven/Desktop/BEDS_Single_gene/")
     bam_folder = Path("./data/mapped")
     return output_folder, bed_folder, bam_folder
 
