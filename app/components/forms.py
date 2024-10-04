@@ -72,9 +72,9 @@ def single_gene():
                         "#### Gene of Interest",
                         help=(
                             "**Please select a Gene of Interest.**\n"
-                            "- The selection of a :red[Gene of Interest] is     crucial for calculating the :red[average read depth].   \n"
+                            "- The selection of a :red[Gene of Interest] is     crucial for calculating the :red[metrics].   \n"
                             "- A :red[Gene of Interest] defines the genomic     region of interest.\n"
-                            "- The :red[read depth] will be calculated  specifically for these region.\n"
+                            "- The :red[key metrics] will be calculated  specifically for these region.\n"
                             "- Ensure that the selected :red[Gene of Interest]  corresponds to the genomic region you want to analyze.   "
                         )
                     )
@@ -84,10 +84,8 @@ def single_gene():
             st.markdown(
                     "#### Exons",
                     help=(
-                        "**Please select a cram file.**\n"
-                        "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
-                        "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
-                        "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
+                        "**Please select a one, multiple or all exons**\n"
+                        "- The selection of a :red[exons] is essential for   analyzing the sequencing data.\n"
                     )
                 )
             df = genome.assembly(st.session_state.assembly, st.session_state.analysis)[1][:]
@@ -102,14 +100,14 @@ def single_gene():
         st.markdown(
                     "#### BAM/CRAM file(s)",
                     help=(
-                        "**Please select a cram file.**\n"
-                        "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
-                        "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
-                        "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
+                        "**Please select a BAM/CRAM file(s).**\n"
+                        "- The selection of a :red[BAM/CRAM file(s)] is essential for   analyzing the sequencing data.\n"
+                        "- A :red[BAM/CRAM file(s)] contains aligned sequencing reads on    the reference genome.\n"
+                        "- Ensure that the selected :red[BAM/CRAM file(s)] corresponds to   the sequencing data you want to analyze."
                     )
                 )
         bam_cram_files = st.session_state.bam_cram_keys
-        st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_single_gene", label_visibility="collapsed",placeholder="Select a cram file")
+        st.multiselect('Select a BAM/CRAM file(s)', bam_cram_files, key="bam_cram_single_gene", label_visibility="collapsed",placeholder="Select a BAM/CRAM file(s)")
         
         st.session_state.bam_cram_selected = st.session_state.bam_cram_single_gene
         
@@ -174,10 +172,10 @@ def gene_panel():
             "#### Gene Panel of Interest",
             help=(
                 "**Please select a Gene Panel of Interest.**\n"
-                "- The selection of a :red[Gene of Interest] is crucial for calculating the :red[average read depth].\n"
-                "- A :red[Gene of Interest] defines the genomic region of interest.\n"
-                "- The :red[read depth] will be calculated specifically for this region.\n"
-                "- Ensure that the selected :red[Gene of Interest] corresponds to the genomic region you want to analyze."
+                "- The selection of a :red[Gene Panel of Interest] is crucial for calculating the :red[metrics].\n"
+                "- A :red[Gene Panel of Interest] defines the genomic region of interest.\n"
+                "- The :red[metrics] will be calculated specifically for this region.\n"
+                "- Ensure that the selected :red[Gene Panel of Interest] corresponds to the genomic region you want to analyze."
             )
         )
         
@@ -214,21 +212,21 @@ def gene_panel():
         st.markdown(
             "#### BAM/CRAM file(s)",
             help=(
-                "**Please select a cram file.**\n"
-                "- The selection of a :red[cram file] is essential for analyzing the sequencing data.\n"
-                "- A :red[cram file] contains aligned sequencing reads on the reference genome.\n"
-                "- Ensure that the selected :red[cram file] corresponds to the sequencing data you want to analyze."
+                "**Please select a BAM/CRAM file(s).**\n"
+                "- The selection of a :red[BAM/CRAM file(s)] is essential for analyzing the sequencing data.\n"
+                "- A :red[BAM/CRAM file(s)] contains aligned sequencing reads on the reference genome.\n"
+                "- Ensure that the selected :red[BAM/CRAM file(s)] corresponds to the sequencing data you want to analyze."
             )
         )
         
         # Cram file selection
         bam_cram_files = st.session_state.bam_cram_keys
         st.multiselect(
-            'Select a cram file', 
+            'Select a BAM/CRAM file(s)', 
             bam_cram_files, 
             key="panel_bam_cram_value", 
             label_visibility="collapsed", 
-            placeholder="Select a cram file"
+            placeholder="Select a BAM/CRAM file(s)"
         )
         
         st.session_state.bam_cram_panel = st.session_state.panel_bam_cram_value
@@ -298,14 +296,14 @@ def exome():
             st.markdown(
                         "#### BAM/CRAM file(s)",
                         help=(
-                            "**Please select a cram file.**\n"
-                            "- The selection of a :red[cram file] is essential for   analyzing the sequencing data.\n"
-                            "- A :red[cram file] contains aligned sequencing reads on    the reference genome.\n"
-                            "- Ensure that the selected :red[cram file] corresponds to   the sequencing data you want to analyze."
+                            "**Please select a BAM/CRAM file(s).**\n"
+                            "- The selection of a :red[BAM/CRAM file(s)] is essential for   analyzing the sequencing data.\n"
+                            "- A :red[BAM/CRAM file(s)] contains aligned sequencing reads on    the reference genome.\n"
+                            "- Ensure that the selected :red[BAM/CRAM file(s)] corresponds to   the sequencing data you want to analyze."
                         )
                     )
             bam_cram_files = st.session_state.bam_cram_keys
-            st.multiselect('Select a Cram file', bam_cram_files, key="bam_cram_value_exome", label_visibility="collapsed",placeholder="Select a cram file")
+            st.multiselect('Select a BAM/CRAM file(s)', bam_cram_files, key="bam_cram_value_exome", label_visibility="collapsed",placeholder="Select a BAM/CRAM file(s)")
         
         st.session_state.bam_cram_selected = st.session_state.bam_cram_value_exome
         st.session_state.bam_cram_exome = st.session_state.bam_cram_value_exome
