@@ -24,7 +24,7 @@ def assembly(assembly, analysis):
 
     # Define patterns for searching files
     patterns = {
-        "Single Gene": "*_chr.bed" if analysis == "Gene Panel" else "*.bed",
+        "Single Gene": "*.bed",
         "Gene Panel": "*_chr.bed",
         "Exome": "*.bed"
     }
