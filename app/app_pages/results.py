@@ -6,6 +6,7 @@ from weasyprint import HTML
 import base64
 import datetime
 import time
+import psutil
 
 # Set Streamlit page configuration
 streamlit_page_config.set_page_configuration()
@@ -13,6 +14,11 @@ streamlit_page_config.set_page_configuration()
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
 st.logo(sidebar_logo, size="large", icon_image=main_body_logo)
+
+report_start_time = time.time()
+# Monitoriza o uso da CPU e memória antes de iniciar a função
+report_cpu_percent_start = psutil.cpu_percent(interval=None)
+report_memory_info_start = psutil.virtual_memory().used
 
 st.title("Results")
 
@@ -235,7 +241,22 @@ if st.session_state.get('results', False):
             st.dataframe(metrics_df[final_metrics], hide_index=True, height=842, width=800)
             if st.session_state.analysis in ['Gene Panel', 'Exome']:
                 if len(st.session_state.get('region', [])) < 3:
+                    plot_start_time = time.time()
+                    # Monitoriza o uso da CPU e memória antes de iniciar a função
+                    plot_cpu_percent_start = psutil.cpu_percent(interval=None)
+                    plot_memory_info_start = psutil.virtual_memory().used
                     plot.display_graphs()
+                    plot_end_time = time.time()
+                    plot_execution_time = plot_end_time - plot_start_time
+                    print(f"Plot | Execution time: {plot_execution_time} seconds")
+                    # Monitoriza novamente após a execução
+                    plot_cpu_percent_end = psutil.cpu_percent(interval=None)
+                    plot_memory_info_end = psutil.virtual_memory().used
+                    # Calcula a diferença
+                    plot_cpu_usage = plot_cpu_percent_end - plot_cpu_percent_start
+                    plot_memory_usage = (plot_memory_info_end - plot_memory_info_start) / (1024 * 1024)  # Convertido para MB
+                    print(f"Plot | CPU Usage: {plot_cpu_usage}%")
+                    print(f"Plot | Memory Usage: {plot_memory_usage} MB")
                 else:
                     st.info("The plot was not generated due to the large volume of data")
 
@@ -279,7 +300,22 @@ if st.session_state.get('results', False):
                 # Display the DataFrame
                 st.dataframe(df[final_metrics], hide_index=True, height=842, width=800)
                 if st.session_state.analysis in ['Single Gene']:
+                    plot_start_time = time.time()
+                    # Monitoriza o uso da CPU e memória antes de iniciar a função
+                    plot_cpu_percent_start = psutil.cpu_percent(interval=None)
+                    plot_memory_info_start = psutil.virtual_memory().used
                     plot.display_graphs()
+                    plot_end_time = time.time()
+                    plot_execution_time = plot_end_time - plot_start_time
+                    print(f"Plot | Execution time: {plot_execution_time} seconds")
+                    # Monitoriza novamente após a execução
+                    plot_cpu_percent_end = psutil.cpu_percent(interval=None)
+                    plot_memory_info_end = psutil.virtual_memory().used
+                    # Calcula a diferença
+                    plot_cpu_usage = plot_cpu_percent_end - plot_cpu_percent_start
+                    plot_memory_usage = (plot_memory_info_end - plot_memory_info_start) / (1024 * 1024)  # Convertido para MB
+                    print(f"Plot | CPU Usage: {plot_cpu_usage}%")
+                    print(f"Plot | Memory Usage: {plot_memory_usage} MB")
 
         @st.fragment
         def exon_detail_tab():
@@ -341,3 +377,15 @@ else:
     st.info("No results to show!")
     time.sleep(2)
     st.switch_page("app_pages/query.py")
+
+report_end_time = time.time()
+report_execution_time = report_end_time - report_start_time
+print(f"Report | Execution time: {report_execution_time} seconds")
+# Monitoriza novamente após a execução
+report_cpu_percent_end = psutil.cpu_percent(interval=None)
+report_memory_info_end = psutil.virtual_memory().used
+# Calcula a diferença
+report_cpu_usage = report_cpu_percent_end - report_cpu_percent_start
+report_memory_usage = (report_memory_info_end - report_memory_info_start) / (1024 * 1024)  # Convertido para MB
+print(f"Report | CPU Usage: {report_cpu_usage}%")
+print(f"Report | Memory Usage: {report_memory_usage} MB")

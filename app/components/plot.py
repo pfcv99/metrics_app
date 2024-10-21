@@ -2,6 +2,10 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import io
+import time
+import psutil
+
+
 
 def plot_interactive_coverage_from_session(selected_sample, threshold=400, highlight=True):
     """
@@ -205,4 +209,3 @@ def display_graphs():
     # Call the function to plot the selected sample's coverage graph
     with st.spinner('Wait for it... Getting plot ready...'):
         plot_interactive_coverage_from_session(selected_sample, threshold, True)
-

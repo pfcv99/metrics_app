@@ -1,10 +1,13 @@
 import streamlit as st
-
+import time
+import psutil
 
 # Display logos
 sidebar_logo = "data/img/unilabs_logo.png"
 main_body_logo = "data/img/thumbnail_image001.png"
 st.logo(sidebar_logo, size="large",link='http://localhost:8501/', icon_image=main_body_logo)
+
+
 
 # Initialize session state
 if "user" not in st.session_state:
@@ -89,4 +92,21 @@ else:
         pg = st.navigation(page_dict)
 
     # Run the selected page
+    streamlit_start_time = time.time()
+    # Monitoriza o uso da CPU e memória antes de iniciar a função
+    streamlit_cpu_percent_start = psutil.cpu_percent(interval=None)
+    streamlit_memory_info_start = psutil.virtual_memory().used
+    
     pg.run()
+    
+    streamlit_end_time = time.time()
+    streamlit_execution_time = streamlit_end_time - streamlit_start_time
+    print(f"Streamlit | Execution time: {streamlit_execution_time} seconds")
+    # Monitoriza novamente após a execução
+    streamlit_cpu_percent_end = psutil.cpu_percent(interval=None)
+    streamlit_memory_info_end = psutil.virtual_memory().used
+    # Calcula a diferença
+    streamlit_cpu_usage = streamlit_cpu_percent_end - streamlit_cpu_percent_start
+    streamlit_memory_usage = (streamlit_memory_info_end - streamlit_memory_info_start) / (1024 * 1024)  # Convertido para MB
+    print(f"Streamlit | CPU Usage: {streamlit_cpu_usage}%")
+    print(f"Streamlit | Memory Usage: {streamlit_memory_usage} MB")

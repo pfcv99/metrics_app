@@ -1,6 +1,7 @@
 import streamlit as st
 import threading
 import time
+import psutil
 from components import genome, analysis, bam_cram
 
 def update_progress_bar():
@@ -35,6 +36,7 @@ def session_state_initialize():
         if key not in st.session_state:
             st.session_state[key] = value
 def single_gene():
+    
     if 'depth_output' in st.session_state and 'filtered_bed' in st.session_state:
         st.session_state.pop('depth_output')
         st.session_state.pop('filtered_bed')
@@ -118,7 +120,10 @@ def single_gene():
             if st.session_state.analysis and st.session_state.assembly and st.session_state.region and st.session_state.bam_cram:
                 # Atualizar a barra de progresso enquanto o cálculo está a decorrer
                 with st.spinner('Submitting Form...'):              
-                    
+                    samtools_start_time = time.time()
+                    # Monitoriza o uso da CPU e memória antes de iniciar a função
+                    samtools_cpu_percent_start = psutil.cpu_percent(interval=None)
+                    samtools_memory_info_start = psutil.virtual_memory().used
                     # Call the samtools.depth function to calculate the depth of coverage
 
                     depth_thread = threading.Thread(target=analysis.run_single_gene())
@@ -131,15 +136,29 @@ def single_gene():
                     st.success("Form submitted")
                     st.session_state.sucess = True
                     st.session_state.results = True
+                    samtools_end_time = time.time()
+                    samtools_execution_time = samtools_end_time - samtools_start_time
+                    print(f"Samtools | Execution time: {samtools_execution_time} seconds")
+                    # Monitoriza novamente após a execução
+                    samtools_cpu_percent_end = psutil.cpu_percent(interval=None)
+                    samtools_memory_info_end = psutil.virtual_memory().used
+
+                    # Calcula a diferença
+                    samtools_cpu_usage = samtools_cpu_percent_end - samtools_cpu_percent_start
+                    samtools_memory_usage = (samtools_memory_info_end - samtools_memory_info_start) / (1024 * 1024)  # Convertido para MB
+
+                    print(f"Samtools | CPU Usage: {samtools_cpu_usage}%")
+                    print(f"Samtools | Memory Usage: {samtools_memory_usage} MB")
                     time.sleep(1)
 
                     if st.session_state.depth_output:
                         st.switch_page("app_pages/results.py")
+                        
                     else:
                         st.warning('No depth content found!')
             else:
                 st.warning("Form not submitted. Please fill in all fields.")
-                
+            
 def gene_panel():
     if 'depth_output' in st.session_state and 'filtered_bed' in st.session_state:
         st.session_state.pop('depth_output')
