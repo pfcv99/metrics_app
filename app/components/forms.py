@@ -258,7 +258,10 @@ def gene_panel():
             if st.session_state.analysis and st.session_state.assembly and st.session_state.bam_cram_panel:
                 # Update the progress bar while calculation is ongoing
                 with st.spinner('Submitting Form...'):
-                    
+                    samtools_start_time = time.time()
+                    # Monitoriza o uso da CPU e memória antes de iniciar a função
+                    samtools_cpu_percent_start = psutil.cpu_percent(interval=None)
+                    samtools_memory_info_start = psutil.virtual_memory().used
                     # Call the samtools.depth function to calculate the depth of coverage
                     depth_thread = threading.Thread(target=analysis.run_gene_panel())
                     depth_thread.start()
@@ -271,6 +274,19 @@ def gene_panel():
                     st.success("Form submitted")
                     st.session_state.success = True
                     st.session_state.results = True
+                    samtools_end_time = time.time()
+                    samtools_execution_time = samtools_end_time - samtools_start_time
+                    print(f"Samtools | Execution time: {samtools_execution_time} seconds")
+                    # Monitoriza novamente após a execução
+                    samtools_cpu_percent_end = psutil.cpu_percent(interval=None)
+                    samtools_memory_info_end = psutil.virtual_memory().used
+
+                    # Calcula a diferença
+                    samtools_cpu_usage = samtools_cpu_percent_end - samtools_cpu_percent_start
+                    samtools_memory_usage = (samtools_memory_info_end - samtools_memory_info_start) / (1024 * 1024)  # Convertido para MB
+
+                    print(f"Samtools | CPU Usage: {samtools_cpu_usage}%")
+                    print(f"Samtools | Memory Usage: {samtools_memory_usage} MB")
                     time.sleep(0.5)
                     if st.session_state.depth_output:
                         st.switch_page("app_pages/results.py")
