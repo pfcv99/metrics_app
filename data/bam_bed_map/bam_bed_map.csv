@@ -361,6 +361,8 @@ OMNOMICS_Average_Read_Depth,BED_File,BAM_File
 ,TP53_8bp.bed,1144211.bam
 ,TP53_8bp.bed,1144627.bam
 ,EZH2_5_12.bed,1142896B.bam
+,KIT_17_8bps.bed,1143128.bam
+
 
 
 
