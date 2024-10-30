@@ -88,6 +88,25 @@ def depth(cram_path, bed_path, depth_dir='data/depth', gene_selection=None, exon
 
         # Check if samtools_output is empty
         if not samtools_output.strip():  # If no output is found
+            
+            # Remove "chr" prefix from the chromosome names in the original BED content
+            modified_bed_lines = []
+            for line in st.session_state.filtered_bed.splitlines():
+                if line.strip():  # Only process non-empty lines
+                    columns = line.strip().split('\t')
+                    # Replace "chr" in the chromosome name, if present
+                    if columns[0].startswith("chr"):
+                        columns[0] = columns[0][3:]  # Remove "chr" prefix
+                    modified_bed_lines.append('\t'.join(columns))
+
+            # Prepare the modified BED content for samtools
+            modified_bed_content = '\n'.join(modified_bed_lines)
+
+            samtools_process = subprocess.Popen(samtools_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+            samtools_output, _ = samtools_process.communicate(input=modified_bed_content)
+
+        # Check if samtools_output is still empty
+        if not samtools_output.strip():  # If still no output
             return  # Stop execution if no data is returned
 
         # Store samtools output (.depth content) in Streamlit session state as a dictionary

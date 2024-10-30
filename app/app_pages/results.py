@@ -146,23 +146,21 @@ if st.session_state.get('results', False):
             with open(sidebar_logo, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
             html_content += f'<img src="data:image/png;base64,{encoded_string}" alt="Unilabs Logo" style="width:200px;"><br><br>'
-            
+
             # Add title
             html_content += '<h1 style="text-align:left;">METRICS APP REPORT</h1><br>'
-            
             html_content += f'<p>Report generated on: {report_date}</p>'
 
-            # Add Overview DataFrame for the selected sample
-            html_content += f'<h2>Overview - Sample: {selected_sample}</h2>'
-            if st.session_state.analysis in ['Gene Panel']:
-                html_content += f'<p>Gene Panel: {st.session_state.panel_name}</p>'
-            elif st.session_state.analysis in ['Exome']:
-                html_content += f'<p>Exome</p>'
-            overview_df = all_genes_df[['Metric', selected_sample]]
-            html_content += overview_df.to_html(index=False)
+            # Add Overview DataFrame for the selected sample only if not "Single Gene"
+            if st.session_state.analysis in ['Gene Panel', 'Exome']:
+                html_content += f'<h2>Overview - Sample: {selected_sample}</h2>'
+                if st.session_state.analysis == 'Gene Panel':
+                    html_content += f'<p>Gene Panel: {st.session_state.panel_name}</p>'
+                overview_df = all_genes_df[['Metric', selected_sample]]
+                html_content += overview_df.to_html(index=False)
 
             # Additional sections for Single Gene analysis
-            if st.session_state.analysis in ['Single Gene']:
+            if st.session_state.analysis == 'Single Gene':
                 for gene_name, gene_df in genes_dfs.items():
                     gene_sample_df = gene_df[['Metric', selected_sample]]
                     if gene_sample_df[selected_sample].notna().any():
@@ -175,7 +173,6 @@ if st.session_state.get('results', False):
                             html_content += f'<h3>Exon: {exon_name} (Gene: {gene_name})</h3>'
                             html_content += exon_sample_df.to_html(index=False)
 
-            
             html_content += '</body></html>'
 
             # Convert HTML to PDF
@@ -183,12 +180,14 @@ if st.session_state.get('results', False):
             pdf_bytes = html_obj.write_pdf()
             status.update(label="Generating PDF...")
 
+
             # Provide download button
             st.download_button(
                 label="Download",
                 data=pdf_bytes,
                 file_name=f'report_{selected_sample}.pdf',
-                mime='application/pdf'
+                mime='application/pdf',
+                icon=":material/download:"
             )
             status.update(label="Report ready for download", expanded=True)
 
