@@ -125,11 +125,20 @@ if st.session_state.get('results', False):
             # Build an HTML string
             html_content = "<html><head><style>"
             html_content += """
+            @page {
+                size: A4;
+                margin: 1in;
+                @bottom-center {
+                    content: "Copyright (c) 2024 Pedro Venâncio";
+                    font-size: 8pt;
+                    color: #888;
+                }
+            }
             body { font-family: Arial, sans-serif; }
             table { border-collapse: collapse; width: 100%; font-size: 10pt; }
             th, td { text-align: left; padding: 8px; border: 1px solid #dddddd; }
             tr:nth-child(even) { background-color: #f9f9f9; }
-            h2, h3 { color: #2F5496; }
+            h1, h2, h3 { color: #2F5496; }
             </style></head><body>
             """
 
@@ -137,6 +146,10 @@ if st.session_state.get('results', False):
             with open(sidebar_logo, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
             html_content += f'<img src="data:image/png;base64,{encoded_string}" alt="Unilabs Logo" style="width:200px;"><br><br>'
+            
+            # Add title
+            html_content += '<h1 style="text-align:left;">METRICS APP REPORT</h1><br>'
+            
             html_content += f'<p>Report generated on: {report_date}</p>'
 
             # Add Overview DataFrame for the selected sample
@@ -162,6 +175,7 @@ if st.session_state.get('results', False):
                             html_content += f'<h3>Exon: {exon_name} (Gene: {gene_name})</h3>'
                             html_content += exon_sample_df.to_html(index=False)
 
+            
             html_content += '</body></html>'
 
             # Convert HTML to PDF

@@ -50,7 +50,6 @@ def calculate_metrics():
         'Size Covered',
         'Breadth of Coverage %',
         'Average Read Depth',
-        #'Average Read Depth (Gene Weighted)',
         'Min Read Depth',
         'Max Read Depth',
         'Depth of Coverage % (1x)',
@@ -97,10 +96,6 @@ def calculate_metrics():
             #    weighted_sum += gene_depths.sum() * size
             #    total_size += size
 
-            #if total_size > 0:
-            #    all_genes_metrics['Average Read Depth (Gene Weighted)'] = weighted_sum / total_size
-            #else:
-            #    all_genes_metrics['Average Read Depth (Gene Weighted)'] = 0
             all_genes_metrics['Min Read Depth'] = all_depths.min()
             all_genes_metrics['Max Read Depth'] = all_depths.max()
             all_genes_metrics['Size Covered'] = all_depths.count()
