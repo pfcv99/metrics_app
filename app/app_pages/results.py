@@ -71,7 +71,6 @@ if st.session_state.get('results', False):
 
         # Prepare All Genes DataFrame
         all_metrics = desired_order.copy()
-        all_metrics.insert(3, 'Average Read Depth (Gene Weighted)')
         all_genes_df = pd.DataFrame({'Metric': all_metrics})
 
         for file_key in results:
