@@ -39,3 +39,5 @@ Thumbs.db
 # Secrets
 ######################
 .streamlit/secrets.toml
+
+app/components/__pycache__
