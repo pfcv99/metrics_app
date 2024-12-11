@@ -41,3 +41,6 @@ Thumbs.db
 .streamlit/secrets.toml
 
 app/components/__pycache__
+app/app_pages/__pycache__
+app/__pycache__/
+.pytest_cache
