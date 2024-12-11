@@ -4,13 +4,6 @@ data/depth/*
 data/mapped/*
 data/regions/*
 
-# Example data won't be ignored #
-######################
-!data/depth/output_1111751_PKD1.depth
-!data/mapped/1111751_PKD1.bam
-!data/regions/PKD1_8bp.bed
-
-
 # OS generated files #
 ######################
 .DS_Store
@@ -20,3 +13,5 @@ data/regions/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+app/components/__pycache__/*
