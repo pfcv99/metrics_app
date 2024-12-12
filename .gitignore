@@ -17,3 +17,5 @@ Thumbs.db
 
 app/components/__pycache__/
 tests/__pycache__/
+app/app_pages/__pycache__
+app/__pycache__
