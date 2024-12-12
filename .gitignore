@@ -14,6 +14,7 @@ data/bam_bed_map/
 .Trashes
 ehthumbs.db
 Thumbs.db
+/.streamlit/secrets.toml
 
 app/components/__pycache__/
 tests/__pycache__/
