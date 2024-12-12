@@ -19,6 +19,7 @@ data/regions/universal_bed/GRCh38_hg38/*
 data/regions/gene_panels/*
 !data/regions/gene_panels/.gitkeep
 data/regions/single_gene/*
+data/bam_bed_map
 !data/regions/single_gene/.gitkeep
 !data/regions/.gitkeep
 
