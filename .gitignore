@@ -3,6 +3,7 @@
 data/depth/*
 data/mapped/*
 data/regions/*
+data/bam_bed_map/.csv
 
 # OS generated files #
 ######################
